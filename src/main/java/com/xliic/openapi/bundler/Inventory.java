@@ -5,6 +5,7 @@
 
 package com.xliic.openapi.bundler;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -48,8 +49,9 @@ public class Inventory implements Iterable<Inventory.Entry> {
         inventory.sort(new EntryComparator());
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("SE_COMPARATOR_SHOULD_BE_SERIALIZABLE")
-    static class EntryComparator implements Comparator<Entry> {
+    static class EntryComparator implements Comparator<Entry>, Serializable {
+
+        private static final long serialVersionUID = 1L;
 
         @Override
         public int compare(Entry a, Entry b) {
