@@ -5,7 +5,14 @@
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>openapi-bundler</name>
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/42Crunch/openapi-bundler-java</url>
+
+  <licenses>
+    <license>
+      <name>AGPL v3 License</name>
+      <url>https://opensource.org/licenses/AGPL-3.0</url>
+    </license>
+  </licenses>
 
   <organization>
     <name>42Crunch</name>
