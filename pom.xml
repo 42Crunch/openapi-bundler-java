@@ -3,8 +3,8 @@
   <groupId>com.xliic</groupId>
   <artifactId>openapi-bundler</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
-  <name>openapi-bundler</name>
+  <version>1.1-SNAPSHOT</version>
+  <name>${project.groupId}:${project.artifactId}</name>
   <url>https://github.com/42Crunch/openapi-bundler-java</url>
   <description>Bundles multiple OpenAPI files (in JSON or YAML formats) using external references into one JSON file.</description>
   <licenses>
@@ -16,8 +16,23 @@
 
   <organization>
     <name>42Crunch</name>
-    <url>https://42crunch.com/</url>
+    <url>https://42crunch.com</url>
   </organization>
+
+  <developers>
+    <developer>
+      <name>Anton Krasovsky</name>
+      <email>anton.krasovsky@42crunch.com</email>
+      <organization>42Crunch</organization>
+      <organizationUrl>https://42crunch.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/42Crunch/openapi-bundler-java.git</connection>
+    <developerConnection>scm:git:ssh://github.com:42Crunch/openapi-bundler-java.git</developerConnection>
+    <url>http://github.com/42Crunch/openapi-bundler-java/tree/master</url>
+  </scm>
 
   <properties>
     <jackson.version>2.10.2</jackson.version>
@@ -25,6 +40,17 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 
   <dependencies>
     <dependency>
@@ -56,4 +82,62 @@
       <version>${jackson.version}</version>
     </dependency>
   </dependencies>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.8</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>
