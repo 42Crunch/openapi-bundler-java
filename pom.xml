@@ -6,7 +6,7 @@
   <version>1.0-SNAPSHOT</version>
   <name>openapi-bundler</name>
   <url>https://github.com/42Crunch/openapi-bundler-java</url>
-
+  <description>Bundles multiple OpenAPI files (in JSON or YAML formats) using external references into one JSON file.</description>
   <licenses>
     <license>
       <name>AGPL v3 License</name>
