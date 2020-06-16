@@ -57,6 +57,7 @@
       <groupId>com.github.spotbugs</groupId>
       <artifactId>spotbugs</artifactId>
       <version>4.0.4</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
