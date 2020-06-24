@@ -29,7 +29,7 @@ public class JsonPointer {
         this.path = parse(target.getFragment());
     }
 
-    private static JsonPath parse(String pointer) throws UnsupportedEncodingException {
+    static JsonPath parse(String pointer) throws UnsupportedEncodingException {
         JsonPath result = new JsonPath();
 
         if (pointer == null || pointer.equals("")) {

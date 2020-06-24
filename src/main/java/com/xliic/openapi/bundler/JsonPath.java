@@ -8,6 +8,7 @@ package com.xliic.openapi.bundler;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class JsonPath extends ArrayList<String> {
@@ -16,6 +17,10 @@ public class JsonPath extends ArrayList<String> {
         for (String key : keys) {
             add(key);
         }
+    }
+
+    public JsonPath(List<String> keys) {
+        super(keys);
     }
 
     public JsonPath(JsonPath path) {
@@ -29,13 +34,18 @@ public class JsonPath extends ArrayList<String> {
     }
 
     public static String toPointer(JsonPath path) throws UnsupportedEncodingException {
+        if (path.size() == 0) {
+            // empty JsonPointer, refers the entire document - return ""
+            return "";
+        }
+
         ArrayList<String> result = new ArrayList<String>();
         for (String key : path) {
             String tildaEncoded = key.replaceAll("~", "~0").replaceAll("\\/", "~1");
             result.add(encodeURIComponent(tildaEncoded));
         }
 
-        return "#/" + String.join("/", result);
+        return "/" + String.join("/", result);
     }
 
     public String toPointer() throws UnsupportedEncodingException {

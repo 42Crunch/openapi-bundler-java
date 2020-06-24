@@ -7,6 +7,7 @@ package com.xliic.openapi.bundler;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
 
@@ -23,9 +24,9 @@ public class Bundler {
         this.serializer = serializer;
     }
 
-    public void bundle(Document document) throws URISyntaxException, JsonProcessingException, IOException {
+    public Mapping bundle(Document document) throws URISyntaxException, JsonProcessingException, IOException {
         crawl(document.root, document.root.node, null, new JsonPath());
-        remap(document);
+        return remap(document);
     }
 
     public void crawl(final Document.Part part, final JsonNode parent, String key, JsonPath pathFromRoot)
@@ -47,21 +48,24 @@ public class Bundler {
         }
     }
 
-    private void remap(Document document) throws UnsupportedEncodingException {
+    private Mapping remap(Document document) throws UnsupportedEncodingException {
+        Mapping mapping = new Mapping();
         inventory.sort();
 
         String file = null, pointer = null, pathFromRoot = null;
         JsonPath path = null;
+        URI filename = null;
 
         for (Entry entry : inventory) {
             if (!entry.external) {
-                Util.setRef(entry.ref, entry.pointer);
+                Util.setRef(entry.ref, "#" + entry.pointer);
             } else if (entry.file.equals(file) && entry.pointer.equals(pointer)) {
-                Util.setRef(entry.ref, pathFromRoot);
+                Util.setRef(entry.ref, "#" + pathFromRoot);
             } else if (entry.file.equals(file) && entry.path.isSubPathOf(path)) {
-                Util.setRef(entry.ref, pathFromRoot + entry.pointer.substring(pointer.length()));
+                Util.setRef(entry.ref, "#" + pathFromRoot + entry.pointer.substring(pointer.length()));
             } else {
                 file = entry.file;
+                filename = entry.part.getFilename();
                 pointer = entry.pointer;
                 path = entry.path;
                 pathFromRoot = entry.pathFromRoot.toPointer();
@@ -79,15 +83,27 @@ public class Bundler {
                     }
                     Util.set(serializer, document.root.node, remapped, value);
                     pathFromRoot = remapped.toPointer();
-                    Util.setRef(entry.ref, pathFromRoot);
+                    Util.setRef(entry.ref, "#" + pathFromRoot);
+                    insertMapping(mapping, remapped, filename, pointer);
                 } else {
-                    // TODO properly dereference merging in any keys
-                    // presented in the reference node
                     Util.set(entry.parent, entry.key, value);
+                    insertMapping(mapping, entry.pathFromRoot, filename, pointer);
                 }
             }
         }
+        return mapping;
+    }
 
+    private void insertMapping(Mapping mapping, JsonPath path, URI filename, String pointer) {
+        Mapping current = mapping;
+        for (String key : path) {
+            if (!current.children.containsKey(key)) {
+                current.children.put(key, new Mapping());
+            }
+            current = current.children.get(key);
+        }
+        // TODO check that current.value is empty
+        current.value = new Mapping.Location(filename.getPath(), pointer);
     }
 
     private String externalEntryToComponentName(Document.Part part, JsonPath path) throws UnsupportedEncodingException {
