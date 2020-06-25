@@ -32,8 +32,8 @@ public class Mapping {
     }
 
     public static class Location {
-        String file;
-        String pointer;
+        public final String file;
+        public final String pointer;
 
         public Location(String file, String pointer) {
             this.file = file;
