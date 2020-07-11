@@ -5,10 +5,8 @@
 
 package com.xliic.openapi.bundler;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.util.HashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,11 +17,7 @@ public class Document {
     URI base;
 
     public Document(URI location, JsonNode root) {
-        Path parent = new File(location.getPath()).toPath().getParent();
-        if (parent == null) {
-            throw new RuntimeException("Unable to find parent folder of: " + location);
-        }
-        this.base = parent.toUri();
+        this.base = location.resolve("."); // strip filename to get base URI
         this.root = new Part(location, root);
         this.parts.put(location, this.root);
     }
@@ -35,8 +29,8 @@ public class Document {
 
     public static URI getTargetPartUri(Part part, URI refUri) throws URISyntaxException {
         URI locationWithFragment = part.location.resolve(refUri);
-        File file = new File(locationWithFragment.getPath());
-        return file.toURI();
+        // return URI without fragment
+        return new URI(locationWithFragment.getScheme(), locationWithFragment.getSchemeSpecificPart(), null);
     }
 
     public Part createPart(URI location, JsonNode node) {
@@ -45,9 +39,9 @@ public class Document {
         return part;
     }
 
-    public Part getPart(URI location) {
-        File file = new File(location.getPath());
-        return parts.get(file.toURI());
+    public Part getPart(URI location) throws URISyntaxException {
+        URI partURI = new URI(location.getScheme(), location.getSchemeSpecificPart(), null);
+        return parts.get(partURI);
     }
 
     public class Part {

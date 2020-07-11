@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,25 +26,27 @@ public class Bundler {
     }
 
     public Mapping bundle(Document document) throws URISyntaxException, JsonProcessingException, IOException {
-        crawl(document.root, document.root.node, null, new JsonPath());
+        HashSet<String> crawled = new HashSet<>();
+        crawl(document.root, document.root.node, null, new JsonPath(), crawled);
         return remap(document);
     }
 
-    public void crawl(final Document.Part part, final JsonNode parent, String key, JsonPath pathFromRoot)
-            throws URISyntaxException, JsonProcessingException, IOException {
+    public void crawl(final Document.Part part, final JsonNode parent, String key, JsonPath pathFromRoot,
+            HashSet<String> crawled) throws URISyntaxException, JsonProcessingException, IOException {
         final JsonNode node = key == null ? parent : Util.get(parent, key);
+
         if (Resolver.isRef(node)) {
-            addToInventory(part, parent, key, pathFromRoot);
+            addToInventory(part, parent, key, pathFromRoot, crawled);
         } else if (node.isObject()) {
             Iterator<String> iterator = node.fieldNames();
             while (iterator.hasNext()) {
                 String fieldName = iterator.next();
-                crawl(part, node, fieldName, pathFromRoot.withKey(fieldName));
+                crawl(part, node, fieldName, pathFromRoot.withKey(fieldName), crawled);
             }
         } else if (node.isArray()) {
             for (int i = 0; i < node.size(); i++) {
                 String index = Integer.toString(i);
-                crawl(part, node, index, pathFromRoot.withKey(index));
+                crawl(part, node, index, pathFromRoot.withKey(index), crawled);
             }
         }
     }
@@ -57,6 +60,8 @@ public class Bundler {
         URI filename = null;
 
         for (Entry entry : inventory) {
+            // System.out.println("foo: " + entry.pointer);
+
             if (!entry.external) {
                 Util.setRef(entry.ref, "#" + entry.pointer);
             } else if (entry.file.equals(file) && entry.pointer.equals(pointer)) {
@@ -73,6 +78,10 @@ public class Bundler {
                 JsonNode value = entry.value;
                 if (Resolver.isExtendedRef(entry.ref)) {
                     value = Resolver.mergeExtendedRef(serializer, entry.ref, value);
+                }
+
+                if (entry.circular) {
+                    Util.setRef(entry.ref, "#" + pathFromRoot);
                 }
 
                 if (entry.path.size() >= 3 && entry.path.get(0).equals("components")) {
@@ -116,14 +125,20 @@ public class Bundler {
         return inventory;
     }
 
-    private void addToInventory(Document.Part part, JsonNode parent, String key, JsonPath pathFromRoot)
-            throws URISyntaxException, JsonProcessingException, IOException {
+    private void addToInventory(Document.Part part, JsonNode parent, String key, JsonPath pathFromRoot,
+            HashSet<String> crawled) throws URISyntaxException, JsonProcessingException, IOException {
 
         JsonNode ref = key == null ? parent : Util.get(parent, key);
         JsonPointer pointer = Resolver.resolveReference(part, ref);
-        inventory.add(new Inventory.Entry(parent, key, ref, pointer.getValue(), pathFromRoot, pointer.getFile(),
-                pointer.getPointer(), pointer.getPath(), pointer.getIndirections(), pointer.getPart()));
-        crawl(pointer.getPart(), pointer.getValue(), null, pathFromRoot);
+        inventory.add(parent, key, ref, pathFromRoot, pointer);
+
+        String crawlId = String.format("%d:%s", parent.hashCode(), key);
+
+        // do not crawl circular pointers or nodes already crawled
+        if (!pointer.getCircular() && !crawled.contains(crawlId)) {
+            crawled.add(crawlId);
+            crawl(pointer.getPart(), pointer.getValue(), null, pathFromRoot, crawled);
+        }
     }
 
 }

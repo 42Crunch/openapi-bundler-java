@@ -5,7 +5,6 @@
 
 package com.xliic.openapi.bundler;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -18,26 +17,30 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.xliic.common.Workspace;
 
 public class Parser {
-    ObjectMapper mapper;
+    private ObjectMapper jsonMapper;
+    private ObjectMapper yamlMapper;
     private Workspace workspace;
 
     public Parser(Workspace workspace) {
-        this.mapper = new ObjectMapper(new YAMLFactory());
+        this.jsonMapper = new ObjectMapper();
+        this.yamlMapper = new ObjectMapper(new YAMLFactory());
         this.workspace = workspace;
     }
 
-    public Document parse(String filename)
+    public Document parse(URI uri)
             throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
-        File file = new File(filename);
-        JsonNode root = readTree(filename);
-        Document document = new Document(file.getAbsoluteFile().toURI(), root);
+        JsonNode root = readTree(uri);
+        Document document = new Document(uri, root);
         crawl(document, document.root, document.root.node);
         return document;
     }
 
-    private JsonNode readTree(String filename)
+    private JsonNode readTree(URI uri)
             throws JsonMappingException, JsonProcessingException, IOException, InterruptedException {
-        return mapper.readTree(workspace.read(filename));
+        if (uri.getPath().toLowerCase().endsWith(".json")) {
+            return jsonMapper.readTree(workspace.read(uri));
+        }
+        return yamlMapper.readTree(workspace.read(uri));
     }
 
     public void crawl(final Document document, final Document.Part part, final JsonNode node)
@@ -63,12 +66,11 @@ public class Parser {
             if (document.parts.containsKey(fileUri)) {
                 return null;
             }
-            JsonNode root = readTree(new File(fileUri).getAbsolutePath());
+            JsonNode root = readTree(fileUri);
             return document.createPart(fileUri, root);
         } catch (Exception e) {
             throw new RuntimeException(
-                    String.format("Failed to resolve reference '%s' in '%s': %s", ref, part.location, e));
+                    String.format("Failed to load document referred by '%s' in '%s': %s", ref, part.location, e));
         }
-
     }
 }

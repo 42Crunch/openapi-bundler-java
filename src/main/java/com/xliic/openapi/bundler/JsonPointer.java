@@ -20,8 +20,7 @@ public class JsonPointer {
     JsonNode resolvedValue;
     JsonPath resolvedPath;
     int indirections = 0;
-    // TODO implement support for circular pointer
-    // boolean circular = false;
+    boolean circular = false;
 
     public JsonPointer(Document.Part part, URI target) throws UnsupportedEncodingException {
         this.part = part;
@@ -58,6 +57,10 @@ public class JsonPointer {
         return indirections;
     }
 
+    public boolean getCircular() {
+        return circular;
+    }
+
     public Document.Part getPart() {
         return this.resolvedPart;
     }
@@ -73,5 +76,4 @@ public class JsonPointer {
     public String getFile() {
         return this.resolvedPart.location.getScheme() + ":" + this.resolvedPart.location.getSchemeSpecificPart();
     }
-
 }

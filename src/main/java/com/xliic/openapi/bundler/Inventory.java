@@ -6,6 +6,7 @@
 package com.xliic.openapi.bundler;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -16,7 +17,12 @@ public class Inventory implements Iterable<Inventory.Entry> {
 
     ArrayList<Inventory.Entry> inventory = new ArrayList<Inventory.Entry>();
 
-    public void add(Entry entry) {
+    public void add(JsonNode parent, String key, JsonNode ref, JsonPath pathFromRoot, JsonPointer pointer)
+            throws UnsupportedEncodingException {
+        Entry entry = new Inventory.Entry(parent, key, ref, pointer.getValue(), pathFromRoot, pointer.getFile(),
+                pointer.getPointer(), pointer.getPath(), pointer.getIndirections(), pointer.getCircular(),
+                pointer.getPart());
+
         Entry existingEntryToRemove = null;
         for (Entry existing : inventory) {
             if (existing.parent == entry.parent && existing.key.equals(entry.key)) {
@@ -62,6 +68,9 @@ public class Inventory implements Iterable<Inventory.Entry> {
             } else if (a.indirections != b.indirections) {
                 // TODO test that lower indirections come first
                 return Integer.compare(a.indirections, b.indirections);
+            } else if (a.circular != b.circular) {
+                // TODO check that circular pointers come first
+                return Boolean.compare(a.circular, b.circular);
             } else if (a.depth != b.depth) {
                 // TODO test that lower depth come first
                 return Integer.compare(a.depth, b.depth);
@@ -90,9 +99,10 @@ public class Inventory implements Iterable<Inventory.Entry> {
         int indirections;
         boolean extended;
         boolean external;
+        boolean circular;
 
         public Entry(JsonNode parent, String key, JsonNode ref, JsonNode value, JsonPath pathFromRoot, String file,
-                String pointer, JsonPath path, int indirections, Document.Part part) {
+                String pointer, JsonPath path, int indirections, boolean circular, Document.Part part) {
             this.ref = ref;
             this.parent = parent;
             this.value = value;
@@ -102,6 +112,7 @@ public class Inventory implements Iterable<Inventory.Entry> {
             this.depth = pathFromRoot.size();
             this.indirections = indirections;
             this.pointer = pointer;
+            this.circular = circular;
             this.path = path;
             this.file = file;
             this.extended = Resolver.isExtendedRef(ref);
