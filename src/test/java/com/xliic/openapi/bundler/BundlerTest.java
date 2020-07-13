@@ -20,7 +20,7 @@ public class BundlerTest {
         Parser parser = new Parser(workspace);
         Serializer serializer = new Serializer();
         Bundler bundler = new Bundler(serializer);
-        Document document = parser.parse(workspace.absolutize(filename));
+        Document document = parser.parse(workspace.resolve(filename));
         Mapping mapping = bundler.bundle(document);
         String json = serializer.serialize(document);
         ObjectMapper mapper = new ObjectMapper();
@@ -43,10 +43,19 @@ public class BundlerTest {
         // check that a json pointer in a bundled document can be mapped back to its
         // original file
         Location error = bundled.original("/components/schemas/Error");
-        assertEquals(error.file, "schemas/error.yaml");
-        assertEquals(error.pointer, "");
+        assertEquals("schemas/error.yaml", error.file);
+        assertEquals("", error.pointer);
         // for pointers to entities in the main file which don't resolve
         // to an external file, return null
         assertNull(bundled.original("/servers/0/url"));
     }
+
+    @Test
+    void testCircular() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+        BundledJsonNode bundled = bundle("circular", "multiple-ref-traversal.yml");
+        BundledJsonNode bundled0 = bundle("circular", "simple-external.yaml");
+        BundledJsonNode bundled1 = bundle("circular", "two-level.yaml");
+        // TODO add some checks, for now make sure it doesn't throw exceptions
+    }
+
 }

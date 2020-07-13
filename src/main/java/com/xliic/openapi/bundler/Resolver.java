@@ -66,16 +66,17 @@ public class Resolver {
         pointer.resolvedPath = pointer.path;
 
         for (int i = 0; i < pointer.path.size(); i++) {
-            if (resolveIfRef(pointer, visited)) {
-                pointer.resolvedPath.addAll(pointer.path.subList(i, pointer.path.size()));
-            }
-
             String key = pointer.path.get(i);
             pointer.resolvedValue = Util.get(pointer.resolvedValue, key);
             if (pointer.resolvedValue == null) {
                 throw new RuntimeException("Unable to resolve: " + pointer.target.getFragment() + " in "
                         + pointer.part.location + " key not found: " + key);
             }
+
+            if (resolveIfRef(pointer, visited)) {
+                pointer.resolvedPath.addAll(pointer.path.subList(i + 1, pointer.path.size()));
+            }
+
         }
 
         resolveIfRef(pointer, visited);
@@ -85,7 +86,7 @@ public class Resolver {
             throws UnsupportedEncodingException, URISyntaxException {
         if (isRef(pointer.resolvedValue)) {
             JsonPointer resolved = resolveReference(pointer.resolvedPart, pointer.resolvedValue, visited);
-            pointer.indirections = pointer.indirections + resolved.getIndirections();
+            pointer.indirections = pointer.indirections + resolved.getIndirections() + 1;
             pointer.resolvedPart = resolved.resolvedPart;
             pointer.resolvedValue = resolved.resolvedValue;
             pointer.resolvedPath = resolved.resolvedPath;

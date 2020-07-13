@@ -1,0 +1,6 @@
+foo: foofoo
+bar:
+  $ref: "#/foo"
+baz:
+  baz:
+    $ref: "#/foo"

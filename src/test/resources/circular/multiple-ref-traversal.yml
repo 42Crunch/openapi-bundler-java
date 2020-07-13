@@ -1,0 +1,7 @@
+swagger: "2.0"
+definitions:
+  Bar:
+    $ref: "#/definitions/Foo"
+  Foo:
+    items:
+      $ref: "#/definitions/Bar"

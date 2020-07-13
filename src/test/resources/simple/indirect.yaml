@@ -1,0 +1,8 @@
+foo: true
+bar:
+  $ref: "#/baz"
+baz:
+  $ref: "#/foo"
+ext:
+  baz: false
+  $ref: "#/foo"

@@ -1,0 +1,4 @@
+swagger: "2.0"
+definitions:
+  User:
+    $ref: "simple-external.yaml#/definitions/User"
