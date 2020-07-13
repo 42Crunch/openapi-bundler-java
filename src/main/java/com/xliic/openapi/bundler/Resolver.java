@@ -79,6 +79,7 @@ public class Resolver {
 
         }
 
+        // if pointer.path is empty, still try resolveIfRef
         resolveIfRef(pointer, visited);
     }
 

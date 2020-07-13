@@ -26,27 +26,26 @@ public class Bundler {
     }
 
     public Mapping bundle(Document document) throws URISyntaxException, JsonProcessingException, IOException {
-        HashSet<String> crawled = new HashSet<>();
-        crawl(document.root, document.root.node, null, new JsonPath(), crawled);
+        crawl(document.root, document.root.node, null, new JsonPath(), new HashSet<>());
         return remap(document);
     }
 
     public void crawl(final Document.Part part, final JsonNode parent, String key, JsonPath pathFromRoot,
-            HashSet<String> crawled) throws URISyntaxException, JsonProcessingException, IOException {
+            HashSet<URI> visited) throws URISyntaxException, JsonProcessingException, IOException {
         final JsonNode node = key == null ? parent : Util.get(parent, key);
 
         if (Resolver.isRef(node)) {
-            addToInventory(part, parent, key, pathFromRoot, crawled);
+            addToInventory(part, parent, key, pathFromRoot, visited);
         } else if (node.isObject()) {
             Iterator<String> iterator = node.fieldNames();
             while (iterator.hasNext()) {
                 String fieldName = iterator.next();
-                crawl(part, node, fieldName, pathFromRoot.withKey(fieldName), crawled);
+                crawl(part, node, fieldName, pathFromRoot.withKey(fieldName), visited);
             }
         } else if (node.isArray()) {
             for (int i = 0; i < node.size(); i++) {
                 String index = Integer.toString(i);
-                crawl(part, node, index, pathFromRoot.withKey(index), crawled);
+                crawl(part, node, index, pathFromRoot.withKey(index), visited);
             }
         }
     }
@@ -60,8 +59,6 @@ public class Bundler {
         URI filename = null;
 
         for (Entry entry : inventory) {
-            // System.out.println("foo: " + entry.pointer);
-
             if (!entry.external) {
                 Util.setRef(entry.ref, "#" + entry.pointer);
             } else if (entry.file.equals(file) && entry.pointer.equals(pointer)) {
@@ -126,18 +123,16 @@ public class Bundler {
     }
 
     private void addToInventory(Document.Part part, JsonNode parent, String key, JsonPath pathFromRoot,
-            HashSet<String> crawled) throws URISyntaxException, JsonProcessingException, IOException {
+            HashSet<URI> visited) throws URISyntaxException, JsonProcessingException, IOException {
 
         JsonNode ref = key == null ? parent : Util.get(parent, key);
         JsonPointer pointer = Resolver.resolveReference(part, ref);
         inventory.add(parent, key, ref, pathFromRoot, pointer);
 
-        String crawlId = String.format("%d:%s", parent.hashCode(), key);
-
-        // do not crawl circular pointers or nodes already crawled
-        if (!pointer.getCircular() && !crawled.contains(crawlId)) {
-            crawled.add(crawlId);
-            crawl(pointer.getPart(), pointer.getValue(), null, pathFromRoot, crawled);
+        // do not crawl circular pointers
+        if (!pointer.getCircular() && !visited.contains(pointer.getTargetURI())) {
+            visited.add(pointer.getTargetURI());
+            crawl(pointer.getPart(), pointer.getValue(), null, pathFromRoot, visited);
         }
     }
 

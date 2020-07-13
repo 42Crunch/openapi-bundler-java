@@ -7,6 +7,7 @@ package com.xliic.openapi.bundler;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -75,5 +76,10 @@ public class JsonPointer {
 
     public String getFile() {
         return this.resolvedPart.location.getScheme() + ":" + this.resolvedPart.location.getSchemeSpecificPart();
+    }
+
+    public URI getTargetURI() throws URISyntaxException {
+        URI file = this.resolvedPart.location;
+        return new URI(file.getScheme(), file.getSchemeSpecificPart(), target.getFragment());
     }
 }

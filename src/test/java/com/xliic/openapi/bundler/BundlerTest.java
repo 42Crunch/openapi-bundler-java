@@ -1,3 +1,8 @@
+/*
+ Copyright (c) 42Crunch Ltd. All rights reserved.
+ Licensed under the GNU Affero General Public License version 3. See LICENSE.txt in the project root for license information.
+*/
+
 package com.xliic.openapi.bundler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,9 +37,11 @@ public class BundlerTest {
     void testBundling() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
         BundledJsonNode bundled = bundle("multifile-petstore", "openapi.yaml");
         // check that bundled output has expected structure
-        assertEquals(bundled.at("/paths/~1pets/get/summary").asText(), "List all pets");
-        assertEquals(bundled.at("/paths/~1pets/get/responses/200/content/application~1json/schema/$ref").asText(),
+        assertEquals(bundled.at("/paths/~1pets/get/summary").textValue(), "List all pets");
+        assertEquals(bundled.at("/paths/~1pets/get/responses/200/content/application~1json/schema/$ref").textValue(),
                 "#/components/schemas/Pets");
+        assertEquals("#/components/schemas/Pet", bundled
+                .at("/paths/~1pets~1{petId}/get/responses/200/content/application~1json/schema/$ref").textValue());
     }
 
     @Test
@@ -52,10 +59,11 @@ public class BundlerTest {
 
     @Test
     void testCircular() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
-        BundledJsonNode bundled = bundle("circular", "multiple-ref-traversal.yml");
-        BundledJsonNode bundled0 = bundle("circular", "simple-external.yaml");
-        BundledJsonNode bundled1 = bundle("circular", "two-level.yaml");
-        // TODO add some checks, for now make sure it doesn't throw exceptions
+        BundledJsonNode simple = bundle("circular", "simple-external.yaml");
+        BundledJsonNode two = bundle("circular", "two-level.yaml");
+        BundledJsonNode multiple = bundle("circular", "multiple-ref-traversal.yml");
+        assertEquals("#/definitions/Foo", multiple.at("/definitions/Bar/$ref").textValue());
+        assertEquals("#/definitions/User", simple.at("/definitions/User/$ref").textValue());
+        assertEquals("#/definitions/User", two.at("/definitions/User/items/$ref").textValue());
     }
-
 }

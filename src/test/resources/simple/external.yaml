@@ -1,0 +1,6 @@
+foo:
+  $ref: "two-refs.yaml#/foo"
+bar:
+  $ref: "two-refs.yaml#/bar"
+baz:
+  $ref: "two-refs.yaml#/baz/baz"

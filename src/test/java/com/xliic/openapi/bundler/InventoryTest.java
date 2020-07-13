@@ -1,9 +1,15 @@
+/*
+ Copyright (c) 42Crunch Ltd. All rights reserved.
+ Licensed under the GNU Affero General Public License version 3. See LICENSE.txt in the project root for license information.
+*/
+
 package com.xliic.openapi.bundler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 
@@ -20,7 +26,7 @@ public class InventoryTest {
         Serializer serializer = new Serializer();
         Bundler bundler = new Bundler(serializer);
         Document document = parser.parse(workspace.resolve(filename));
-        bundler.crawl(document.root, document.root.node, null, new JsonPath(), new HashSet<String>());
+        bundler.crawl(document.root, document.root.node, null, new JsonPath(), new HashSet<URI>());
         return bundler.getInventory();
     }
 
@@ -90,5 +96,23 @@ public class InventoryTest {
         assertEquals("/foo/foo1", baz.pointer);
         assertEquals(0, bar.indirections);
         assertEquals(1, baz.indirections);
+    }
+
+    @Test
+    void external() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+        Inventory inventory = parse("simple", "external.yaml");
+        Entry foo = find(inventory, "/foo");
+        Entry bar = find(inventory, "/bar");
+        Entry baz = find(inventory, "/baz");
+        assertEquals(3, inventory.size());
+        assertEquals(true, foo.external);
+        assertEquals(true, bar.external);
+        assertEquals(true, baz.external);
+        assertEquals(0, foo.indirections);
+        assertEquals(1, bar.indirections);
+        assertEquals(1, baz.indirections);
+        assertEquals("foofoo", foo.value.textValue());
+        assertEquals("foofoo", bar.value.textValue());
+        assertEquals("foofoo", baz.value.textValue());
     }
 }
