@@ -7,6 +7,8 @@ package com.xliic.openapi.bundler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -19,8 +21,8 @@ import com.xliic.openapi.bundler.Mapping.Location;
 import org.junit.jupiter.api.Test;
 
 public class BundlerTest {
-    BundledJsonNode bundle(String dirname, String filename)
-            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+    BundledJsonNode bundle(String dirname, String filename) throws JsonProcessingException, IOException,
+            URISyntaxException, InterruptedException, ReferenceResolutionException {
         TestWorkspace workspace = new TestWorkspace(dirname);
         Parser parser = new Parser(workspace);
         Serializer serializer = new Serializer();
@@ -34,7 +36,8 @@ public class BundlerTest {
     }
 
     @Test
-    void testBundling() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+    void testBundling() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
         BundledJsonNode bundled = bundle("multifile-petstore", "openapi.yaml");
         // check that bundled output has expected structure
         assertEquals(bundled.at("/paths/~1pets/get/summary").textValue(), "List all pets");
@@ -45,7 +48,8 @@ public class BundlerTest {
     }
 
     @Test
-    void testMapping() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+    void testMapping() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
         BundledJsonNode bundled = bundle("multifile-petstore", "openapi.yaml");
         // check that a json pointer in a bundled document can be mapped back to its
         // original file
@@ -58,12 +62,37 @@ public class BundlerTest {
     }
 
     @Test
-    void testCircular() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+    void testCircular() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
         BundledJsonNode simple = bundle("circular", "simple-external.yaml");
         BundledJsonNode two = bundle("circular", "two-level.yaml");
         BundledJsonNode multiple = bundle("circular", "multiple-ref-traversal.yml");
         assertEquals("#/definitions/Foo", multiple.at("/definitions/Bar/$ref").textValue());
         assertEquals("#/definitions/User", simple.at("/definitions/User/$ref").textValue());
         assertEquals("#/definitions/User", two.at("/definitions/User/items/$ref").textValue());
+    }
+
+    @Test
+    void testExceptions() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
+
+        ReferenceResolutionException one = assertThrows(ReferenceResolutionException.class, () -> {
+            bundle("broken", "one-ref.yaml");
+        });
+
+        ReferenceResolutionException external = assertThrows(ReferenceResolutionException.class, () -> {
+            bundle("broken", "external.yaml");
+        });
+
+        assertTrue(one.file.getPath().endsWith("one-ref.yaml"));
+        assertEquals("/bar", one.pointer);
+        assertEquals("#/foo-foo", one.target.toString());
+
+        // reference from external.yaml points to one-ref.yaml
+        // so exception happens when processing one-ref, and
+        // contains only information about one-ref.yaml
+        assertTrue(external.file.getPath().endsWith("one-ref.yaml"));
+        assertEquals("/bar", one.pointer);
+        assertEquals("#/foo-foo", one.target.toString());
     }
 }

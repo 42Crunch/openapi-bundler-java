@@ -1,0 +1,2 @@
+bar:
+  $ref: "one-ref.yaml#/bar"

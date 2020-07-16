@@ -25,13 +25,15 @@ public class Bundler {
         this.serializer = serializer;
     }
 
-    public Mapping bundle(Document document) throws URISyntaxException, JsonProcessingException, IOException {
+    public Mapping bundle(Document document)
+            throws URISyntaxException, JsonProcessingException, IOException, ReferenceResolutionException {
         crawl(document.root, document.root.node, null, new JsonPath(), new HashSet<>());
         return remap(document);
     }
 
     public void crawl(final Document.Part part, final JsonNode parent, String key, JsonPath pathFromRoot,
-            HashSet<URI> visited) throws URISyntaxException, JsonProcessingException, IOException {
+            HashSet<URI> visited)
+            throws URISyntaxException, JsonProcessingException, IOException, ReferenceResolutionException {
         final JsonNode node = key == null ? parent : Util.get(parent, key);
 
         if (Resolver.isRef(node)) {
@@ -123,10 +125,11 @@ public class Bundler {
     }
 
     private void addToInventory(Document.Part part, JsonNode parent, String key, JsonPath pathFromRoot,
-            HashSet<URI> visited) throws URISyntaxException, JsonProcessingException, IOException {
+            HashSet<URI> visited)
+            throws URISyntaxException, JsonProcessingException, IOException, ReferenceResolutionException {
 
         JsonNode ref = key == null ? parent : Util.get(parent, key);
-        JsonPointer pointer = Resolver.resolveReference(part, ref);
+        JsonPointer pointer = Resolver.resolveReference(part, ref, pathFromRoot);
         inventory.add(parent, key, ref, pathFromRoot, pointer);
 
         // do not crawl circular pointers

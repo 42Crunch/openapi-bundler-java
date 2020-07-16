@@ -19,8 +19,8 @@ import com.xliic.openapi.bundler.Inventory.Entry;
 import org.junit.jupiter.api.Test;
 
 public class InventoryTest {
-    Inventory parse(String dirname, String filename)
-            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+    Inventory parse(String dirname, String filename) throws JsonProcessingException, IOException, URISyntaxException,
+            InterruptedException, ReferenceResolutionException {
         TestWorkspace workspace = new TestWorkspace(dirname);
         Parser parser = new Parser(workspace);
         Serializer serializer = new Serializer();
@@ -40,7 +40,8 @@ public class InventoryTest {
     }
 
     @Test
-    void one() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+    void one() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
         Inventory inventory = parse("simple", "one-ref.yaml");
         Entry entry = find(inventory, "/bar");
         assertEquals(1, inventory.size());
@@ -51,7 +52,8 @@ public class InventoryTest {
     }
 
     @Test
-    void two() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+    void two() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
         Inventory inventory = parse("simple", "two-refs.yaml");
         Entry bar = find(inventory, "/bar");
         Entry baz = find(inventory, "/baz/baz");
@@ -71,7 +73,8 @@ public class InventoryTest {
     }
 
     @Test
-    void indirect() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+    void indirect() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
         Inventory inventory = parse("simple", "indirect.yaml");
         Entry bar = find(inventory, "/bar");
         Entry baz = find(inventory, "/baz");
@@ -88,7 +91,8 @@ public class InventoryTest {
     }
 
     @Test
-    void refDeep() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+    void refDeep() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
         Inventory inventory = parse("simple", "ref-deep.yaml");
         Entry bar = find(inventory, "/bar");
         Entry baz = find(inventory, "/baz");
@@ -99,7 +103,8 @@ public class InventoryTest {
     }
 
     @Test
-    void external() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+    void external() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
         Inventory inventory = parse("simple", "external.yaml");
         Entry foo = find(inventory, "/foo");
         Entry bar = find(inventory, "/bar");
