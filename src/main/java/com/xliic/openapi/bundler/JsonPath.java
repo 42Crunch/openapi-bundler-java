@@ -48,8 +48,12 @@ public class JsonPath extends ArrayList<String> {
         return "/" + String.join("/", result);
     }
 
-    public String toPointer() throws UnsupportedEncodingException {
-        return JsonPath.toPointer(this);
+    public String toPointer() {
+        try {
+            return JsonPath.toPointer(this);
+        } catch (UnsupportedEncodingException e) {
+            throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
+        }
     }
 
     private static String encodeURIComponent(String segment) throws UnsupportedEncodingException {

@@ -20,9 +20,11 @@ public class Bundler {
 
     private Inventory inventory = new Inventory();
     private Serializer serializer;
+    private Parser parser;
 
-    public Bundler(Serializer serializer) throws JsonProcessingException, IOException {
+    public Bundler(Parser parser, Serializer serializer) throws JsonProcessingException, IOException {
         this.serializer = serializer;
+        this.parser = parser;
     }
 
     public Mapping bundle(Document document)
@@ -129,7 +131,7 @@ public class Bundler {
             throws URISyntaxException, JsonProcessingException, IOException, ReferenceResolutionException {
 
         JsonNode ref = key == null ? parent : Util.get(parent, key);
-        JsonPointer pointer = Resolver.resolveReference(part, ref, pathFromRoot);
+        JsonPointer pointer = Resolver.resolveReference(parser, part, ref, pathFromRoot);
         inventory.add(parent, key, ref, pathFromRoot, pointer);
 
         // do not crawl circular pointers

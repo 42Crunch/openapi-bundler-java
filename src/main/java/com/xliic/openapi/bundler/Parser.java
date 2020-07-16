@@ -31,46 +31,14 @@ public class Parser {
             throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
         JsonNode root = readTree(uri);
         Document document = new Document(uri, root);
-        crawl(document, document.root, document.root.node);
         return document;
     }
 
-    private JsonNode readTree(URI uri)
+    public JsonNode readTree(URI uri)
             throws JsonMappingException, JsonProcessingException, IOException, InterruptedException {
         if (uri.getPath().toLowerCase().endsWith(".json")) {
             return jsonMapper.readTree(workspace.read(uri));
         }
         return yamlMapper.readTree(workspace.read(uri));
-    }
-
-    public void crawl(final Document document, final Document.Part part, final JsonNode node)
-            throws JsonProcessingException, IOException, URISyntaxException {
-        if (Resolver.isExternalRef(node)) {
-            Document.Part newPart = loadNewPart(document, part, node);
-            if (newPart != null) {
-                crawl(document, newPart, newPart.node);
-            }
-        } else if (node.isContainerNode()) {
-            for (JsonNode child : node) {
-                crawl(document, part, child);
-            }
-        }
-    }
-
-    public Document.Part loadNewPart(Document document, Document.Part part, JsonNode node)
-            throws JsonProcessingException, IOException, URISyntaxException {
-        String ref = node.get("$ref").asText();
-        try {
-            URI refUri = new URI(ref);
-            URI fileUri = Document.getTargetPartUri(part, refUri);
-            if (document.parts.containsKey(fileUri)) {
-                return null;
-            }
-            JsonNode root = readTree(fileUri);
-            return document.createPart(fileUri, root);
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    String.format("Failed to load document referred by '%s' in '%s': %s", ref, part.location, e));
-        }
     }
 }

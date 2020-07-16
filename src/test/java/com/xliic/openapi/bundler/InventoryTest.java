@@ -24,7 +24,7 @@ public class InventoryTest {
         TestWorkspace workspace = new TestWorkspace(dirname);
         Parser parser = new Parser(workspace);
         Serializer serializer = new Serializer();
-        Bundler bundler = new Bundler(serializer);
+        Bundler bundler = new Bundler(parser, serializer);
         Document document = parser.parse(workspace.resolve(filename));
         bundler.crawl(document.root, document.root.node, null, new JsonPath(), new HashSet<URI>());
         return bundler.getInventory();

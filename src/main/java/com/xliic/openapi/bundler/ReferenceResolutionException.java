@@ -5,14 +5,14 @@ import java.net.URI;
 public class ReferenceResolutionException extends Exception {
 
     private static final long serialVersionUID = 1L;
-    public final URI file;
-    public final String pointer;
-    public final URI target;
+    public final URI sourceFile;
+    public final String sourcePointer;
+    public final String target;
 
-    public ReferenceResolutionException(URI file, String pointer, URI target) {
-        super(String.format("Failed to resolve reference to '%s' in '%s': at path '%s'", target, file, pointer));
-        this.file = file;
-        this.pointer = pointer;
+    public ReferenceResolutionException(String message, URI file, String pointer, String target) {
+        super(message);
+        this.sourceFile = file;
+        this.sourcePointer = pointer;
         this.target = target;
     }
 }

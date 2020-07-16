@@ -26,7 +26,7 @@ public class BundlerTest {
         TestWorkspace workspace = new TestWorkspace(dirname);
         Parser parser = new Parser(workspace);
         Serializer serializer = new Serializer();
-        Bundler bundler = new Bundler(serializer);
+        Bundler bundler = new Bundler(parser, serializer);
         Document document = parser.parse(workspace.resolve(filename));
         Mapping mapping = bundler.bundle(document);
         String json = serializer.serialize(document);
@@ -73,26 +73,60 @@ public class BundlerTest {
     }
 
     @Test
-    void testExceptions() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+    void testExceptionsRef() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
             ReferenceResolutionException {
 
-        ReferenceResolutionException one = assertThrows(ReferenceResolutionException.class, () -> {
+        ReferenceResolutionException ex = assertThrows(ReferenceResolutionException.class, () -> {
             bundle("broken", "one-ref.yaml");
         });
 
-        ReferenceResolutionException external = assertThrows(ReferenceResolutionException.class, () -> {
+        assertTrue(ex.sourceFile.getPath().endsWith("one-ref.yaml"));
+        assertEquals("/bar", ex.sourcePointer);
+        assertEquals("#/foo-foo", ex.target);
+
+    }
+
+    @Test
+    void testExceptionExternal() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
+
+        ReferenceResolutionException ex = assertThrows(ReferenceResolutionException.class, () -> {
             bundle("broken", "external.yaml");
         });
-
-        assertTrue(one.file.getPath().endsWith("one-ref.yaml"));
-        assertEquals("/bar", one.pointer);
-        assertEquals("#/foo-foo", one.target.toString());
 
         // reference from external.yaml points to one-ref.yaml
         // so exception happens when processing one-ref, and
         // contains only information about one-ref.yaml
-        assertTrue(external.file.getPath().endsWith("one-ref.yaml"));
-        assertEquals("/bar", one.pointer);
-        assertEquals("#/foo-foo", one.target.toString());
+        assertTrue(ex.sourceFile.getPath().endsWith("one-ref.yaml"));
+        assertEquals("/bar", ex.sourcePointer);
+        assertEquals("#/foo-foo", ex.target);
+    }
+
+    @Test
+    void testExceptionsMissing() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
+
+        ReferenceResolutionException ex = assertThrows(ReferenceResolutionException.class, () -> {
+            bundle("broken", "external-not-exist.yaml");
+        });
+
+        assertTrue(ex.sourceFile.getPath().endsWith("external-not-exist.yaml"));
+        assertTrue(ex.getMessage().startsWith("Failed to load external reference: java.nio.file.NoSuchFileException"));
+        assertEquals("one-ref-foo.yaml#/bar", ex.target);
+        assertEquals("/bar", ex.sourcePointer);
+
+    }
+
+    @Test
+    void testExceptionURI() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            ReferenceResolutionException {
+
+        ReferenceResolutionException ex = assertThrows(ReferenceResolutionException.class, () -> {
+            bundle("broken", "bad-uri.yaml");
+        });
+
+        assertEquals("/bar", ex.sourcePointer);
+        assertTrue(ex.sourceFile.getPath().endsWith("bad-uri.yaml"));
+        assertTrue(ex.getMessage().startsWith("Failed to parse reference: Illegal character"));
     }
 }

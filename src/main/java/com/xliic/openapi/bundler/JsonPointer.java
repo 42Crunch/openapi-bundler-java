@@ -23,13 +23,13 @@ public class JsonPointer {
     int indirections = 0;
     boolean circular = false;
 
-    public JsonPointer(Document.Part part, URI target) throws UnsupportedEncodingException {
+    public JsonPointer(Document.Part part, URI target) {
         this.part = part;
         this.target = target;
         this.path = parse(target.getFragment());
     }
 
-    static JsonPath parse(String pointer) throws UnsupportedEncodingException {
+    static JsonPath parse(String pointer) {
         JsonPath result = new JsonPath();
 
         if (pointer == null || pointer.equals("")) {
@@ -39,7 +39,11 @@ public class JsonPointer {
 
         String[] segments = pointer.split("/");
         for (String segment : segments) {
-            result.add(URLDecoder.decode(segment.replaceAll("~1", "/").replaceAll("~0", "~"), "UTF-8"));
+            try {
+                result.add(URLDecoder.decode(segment.replaceAll("~1", "/").replaceAll("~0", "~"), "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
+            }
         }
 
         if (result.size() > 1 && result.get(0).equals("")) {
