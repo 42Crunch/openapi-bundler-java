@@ -27,7 +27,7 @@ public class Util {
         if (obj.isObject()) {
             ((ObjectNode) obj).put("$ref", value);
         } else {
-            // TODO throw
+            throw new IllegalArgumentException("Can't set $ref, argument is not an object");
         }
     }
 
@@ -37,7 +37,7 @@ public class Util {
         } else if (obj.isArray()) {
             ((ArrayNode) obj).set(Integer.parseInt(key), value);
         } else {
-            // TODO throw
+            throw new IllegalArgumentException("Can't set, argument is not a container");
         }
     }
 
@@ -55,7 +55,7 @@ public class Util {
         String key = path.get(path.size() - 1);
 
         if (current.has(key)) {
-            // TODO throw -- attempt to overwrite already existing value
+            throw new IllegalArgumentException("Attempting to override existing value at: " + String.join("/", path));
         }
 
         set(current, key, value);

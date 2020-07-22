@@ -35,6 +35,9 @@ public class JsonPointer {
         if (pointer == null || pointer.equals("")) {
             // return empty path
             return result;
+        } else if (pointer.equals("/")) {
+            // return path to "" key
+            return result.withKey("");
         }
 
         String[] segments = pointer.split("/");
@@ -46,10 +49,8 @@ public class JsonPointer {
             }
         }
 
-        if (result.size() > 1 && result.get(0).equals("")) {
-            result.remove(0);
-            // TODO throw, must start with "" (/)
-        }
+        // remove "" from the result of split
+        result.remove(0);
 
         return result;
     }

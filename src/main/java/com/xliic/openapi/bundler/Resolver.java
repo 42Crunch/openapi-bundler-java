@@ -126,7 +126,7 @@ public class Resolver {
             }
             return merged;
         } else {
-            // TODO cant merge object and array, trow
+            // TODO cant merge object and array, throw
         }
 
         return null;
