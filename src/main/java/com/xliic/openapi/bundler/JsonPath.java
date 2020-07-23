@@ -27,39 +27,20 @@ public class JsonPath extends ArrayList<String> {
         super(path);
     }
 
+    JsonPath withKeys(List<String> keys) {
+        JsonPath copy = new JsonPath(this);
+        copy.addAll(keys);
+        return copy;
+    }
+
     JsonPath withKey(String key) {
         JsonPath copy = new JsonPath(this);
         copy.add(key);
         return copy;
     }
 
-    public static String toPointer(JsonPath path) throws UnsupportedEncodingException {
-        if (path.size() == 0) {
-            // empty JsonPointer, refers the entire document - return ""
-            return "";
-        }
-
-        ArrayList<String> result = new ArrayList<String>();
-        for (String key : path) {
-            String tildaEncoded = key.replaceAll("~", "~0").replaceAll("\\/", "~1");
-            result.add(encodeURIComponent(tildaEncoded));
-        }
-
-        return "/" + String.join("/", result);
-    }
-
-    public String toPointer() {
-        try {
-            return JsonPath.toPointer(this);
-        } catch (UnsupportedEncodingException e) {
-            throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
-        }
-    }
-
-    private static String encodeURIComponent(String segment) throws UnsupportedEncodingException {
-        return URLEncoder.encode(segment, "UTF-8").replaceAll("\\+", "%20").replaceAll("\\%21", "!")
-                .replaceAll("\\%27", "'").replaceAll("\\%28", "(").replaceAll("\\%29", ")").replaceAll("\\%7E", "~");
-
+    public JsonPointer toPointer() {
+        return JsonPointer.fromJsonPath(this);
     }
 
     public boolean isSubPathOf(JsonPath path) {

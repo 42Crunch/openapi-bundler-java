@@ -40,9 +40,9 @@ public class BundlerTest {
             ReferenceResolutionException {
         BundledJsonNode bundled = bundle("multifile-petstore", "openapi.yaml");
         // check that bundled output has expected structure
-        assertEquals(bundled.at("/paths/~1pets/get/summary").textValue(), "List all pets");
-        assertEquals(bundled.at("/paths/~1pets/get/responses/200/content/application~1json/schema/$ref").textValue(),
-                "#/components/schemas/Pets");
+        assertEquals("List all pets", bundled.at("/paths/~1pets/get/summary").textValue());
+        assertEquals("#/components/schemas/Pets",
+                bundled.at("/paths/~1pets/get/responses/200/content/application~1json/schema/$ref").textValue());
         assertEquals("#/components/schemas/Pet", bundled
                 .at("/paths/~1pets~1{petId}/get/responses/200/content/application~1json/schema/$ref").textValue());
     }
@@ -67,9 +67,11 @@ public class BundlerTest {
         BundledJsonNode simple = bundle("circular", "simple-external.yaml");
         BundledJsonNode two = bundle("circular", "two-level.yaml");
         BundledJsonNode multiple = bundle("circular", "multiple-ref-traversal.yml");
+
         assertEquals("#/definitions/Foo", multiple.at("/definitions/Bar/$ref").textValue());
         assertEquals("#/definitions/User", simple.at("/definitions/User/$ref").textValue());
         assertEquals("#/definitions/User", two.at("/definitions/User/items/$ref").textValue());
+
     }
 
     @Test

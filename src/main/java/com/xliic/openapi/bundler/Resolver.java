@@ -29,72 +29,78 @@ public class Resolver {
         return isRef(node) && !node.get("$ref").asText().startsWith("#");
     }
 
-    public static JsonPointer resolveReference(Parser parser, Document.Part part, JsonNode ref, JsonPath refPath)
+    public static Reference resolveReference(Parser parser, Document.Part part, JsonNode ref, JsonPath refPath)
             throws URISyntaxException, UnsupportedEncodingException, ReferenceResolutionException {
-        ArrayList<JsonNode> visited = new ArrayList<>();
-        return resolveReference(parser, part, ref, refPath, visited);
+        return resolveReference(parser, part, ref, refPath, new ArrayList<URI>());
     }
 
-    private static JsonPointer resolveReference(Parser parser, Document.Part part, JsonNode ref, JsonPath refPath,
-            ArrayList<JsonNode> visited) throws ReferenceResolutionException {
+    private static Reference resolveReference(Parser parser, Document.Part part, JsonNode refNode, JsonPath refPath,
+            ArrayList<URI> visited) throws ReferenceResolutionException {
+        Reference reference = createReference(parser, part, refNode.get("$ref").asText(), refPath);
 
-        String rawTarget = ref.get("$ref").asText();
-        try {
-            URI target = new URI(rawTarget);
-
-            Document.Part targetPart = getPart(parser, part, target);
-            JsonPointer pointer = new JsonPointer(targetPart, new URI(null, null, target.getFragment()));
-
-            if (visited.contains(ref)) {
-                pointer.circular = true;
-                pointer.resolvedPart = pointer.part;
-                pointer.resolvedPath = pointer.path;
-                return pointer;
-            }
-            visited.add(ref);
-
-            resolvePointer(parser, pointer, visited);
-            return pointer;
-        } catch (PointerResolutionException e) {
-            throw new ReferenceResolutionException(String.format("Failed to resolve JSON Pointer: ", e.pointer),
-                    part.location, refPath.toPointer(), rawTarget);
-        } catch (DocumentLoadingException e) {
-            throw new ReferenceResolutionException(e.getMessage(), part.location, refPath.toPointer(), rawTarget);
-        } catch (URISyntaxException e) {
-            throw new ReferenceResolutionException(String.format("Failed to parse reference: %s", e.getMessage()),
-                    part.location, refPath.toPointer(), rawTarget);
+        if (visited.contains(reference.getSourceURI())) {
+            return resolveCircular(reference);
         }
-    }
+        visited.add(reference.getSourceURI());
 
-    private static void resolvePointer(Parser parser, JsonPointer pointer, ArrayList<JsonNode> visited)
-            throws PointerResolutionException, ReferenceResolutionException {
-        pointer.resolvedPart = pointer.part;
-        pointer.resolvedValue = pointer.part.node;
-        pointer.resolvedPath = pointer.path;
-        JsonPath refPath = new JsonPath();
-
-        for (int i = 0; i < pointer.path.size(); i++) {
-            String key = pointer.path.get(i);
-            refPath.add(key);
-            pointer.resolvedValue = Util.get(pointer.resolvedValue, key);
-            if (pointer.resolvedValue == null) {
-                throw new PointerResolutionException(pointer.target.getFragment());
+        JsonPath path = new JsonPath();
+        for (int i = 0; i < reference.path.size(); i++) {
+            String key = reference.path.get(i);
+            path.add(key);
+            reference.resolvedValue = Util.get(reference.resolvedValue, key);
+            if (reference.resolvedValue == null) {
+                throw new ReferenceResolutionException(
+                        String.format("Failed to resolve JSON Pointer \"%s\"", reference.targetPointer),
+                        reference.sourcePart.location, reference.sourcePointer.getValue(),
+                        reference.targetPointer.getURI().toString());
             }
 
-            if (resolveIfRef(parser, pointer, refPath, visited)) {
-                pointer.resolvedPath.addAll(pointer.path.subList(i + 1, pointer.path.size()));
+            if (resolveIfRef(parser, reference, path, visited)) {
+                reference.resolvedPath.addAll(reference.path.subList(i + 1, reference.path.size()));
             }
-
         }
 
         // if pointer.path is empty, still try resolveIfRef
-        resolveIfRef(parser, pointer, refPath, visited);
+        resolveIfRef(parser, reference, path, visited);
+
+        return reference;
     }
 
-    private static boolean resolveIfRef(Parser parser, JsonPointer pointer, JsonPath refPath,
-            ArrayList<JsonNode> visited) throws ReferenceResolutionException {
+    private static Reference createReference(Parser parser, Document.Part part, String rawTarget, JsonPath refPath)
+            throws ReferenceResolutionException {
+        try {
+            URI target = new URI(rawTarget);
+            Document.Part targetPart = getPart(parser, part, target);
+            JsonPointer targetPointer = target.getFragment() == null ? new JsonPointer("")
+                    : new JsonPointer(target.getFragment());
+
+            Reference reference = new Reference(part, refPath.toPointer(), targetPart, targetPointer);
+            reference.resolvedPart = reference.targetPart;
+            reference.resolvedValue = reference.targetPart.node;
+            reference.resolvedPath = reference.path;
+
+            return reference;
+
+        } catch (DocumentLoadingException e) {
+            throw new ReferenceResolutionException(e.getMessage(), part.location, refPath.toPointer().getValue(),
+                    rawTarget);
+        } catch (URISyntaxException e) {
+            throw new ReferenceResolutionException(String.format("Failed to parse reference: %s", e.getMessage()),
+                    part.location, refPath.toPointer().getValue(), rawTarget);
+        }
+    }
+
+    private static Reference resolveCircular(Reference reference) {
+        reference.circular = true;
+        reference.resolvedPart = reference.targetPart;
+        reference.resolvedPath = reference.path;
+        return reference;
+    }
+
+    private static boolean resolveIfRef(Parser parser, Reference pointer, JsonPath refPath, ArrayList<URI> visited)
+            throws ReferenceResolutionException {
         if (isRef(pointer.resolvedValue)) {
-            JsonPointer resolved = resolveReference(parser, pointer.resolvedPart, pointer.resolvedValue, refPath,
+            Reference resolved = resolveReference(parser, pointer.resolvedPart, pointer.resolvedValue, refPath,
                     visited);
             pointer.indirections = pointer.indirections + resolved.getIndirections() + 1;
             pointer.resolvedPart = resolved.resolvedPart;

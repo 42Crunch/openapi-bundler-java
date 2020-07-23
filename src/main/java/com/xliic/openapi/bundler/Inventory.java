@@ -17,11 +17,11 @@ public class Inventory implements Iterable<Inventory.Entry> {
 
     ArrayList<Inventory.Entry> inventory = new ArrayList<Inventory.Entry>();
 
-    public void add(JsonNode parent, String key, JsonNode ref, JsonPath pathFromRoot, JsonPointer pointer)
+    public void add(JsonNode parent, String key, JsonNode ref, JsonPath pathFromRoot, Reference reference)
             throws UnsupportedEncodingException {
-        Entry entry = new Inventory.Entry(parent, key, ref, pointer.getValue(), pathFromRoot, pointer.getFile(),
-                pointer.getPointer(), pointer.getPath(), pointer.getIndirections(), pointer.getCircular(),
-                pointer.getPart());
+        Entry entry = new Inventory.Entry(parent, key, ref, reference.getValue(), pathFromRoot, reference.getFile(),
+                reference.getPointer(), reference.getPath(), reference.getIndirections(), reference.getCircular(),
+                reference.getPart());
 
         Entry existingEntryToRemove = null;
         for (Entry existing : inventory) {
@@ -93,7 +93,7 @@ public class Inventory implements Iterable<Inventory.Entry> {
         String key;
         JsonPath pathFromRoot;
         JsonPath path;
-        String pointer;
+        JsonPointer pointer;
         String file;
         int depth;
         int indirections;
@@ -102,7 +102,7 @@ public class Inventory implements Iterable<Inventory.Entry> {
         boolean circular;
 
         public Entry(JsonNode parent, String key, JsonNode ref, JsonNode value, JsonPath pathFromRoot, String file,
-                String pointer, JsonPath path, int indirections, boolean circular, Document.Part part) {
+                JsonPointer pointer, JsonPath path, int indirections, boolean circular, Document.Part part) {
             this.ref = ref;
             this.parent = parent;
             this.value = value;

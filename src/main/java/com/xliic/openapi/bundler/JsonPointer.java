@@ -1,52 +1,48 @@
-/*
- Copyright (c) 42Crunch Ltd. All rights reserved.
- Licensed under the GNU Affero General Public License version 3. See LICENSE.txt in the project root for license information.
-*/
-
 package com.xliic.openapi.bundler;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
+import java.util.ArrayList;
 
-import com.fasterxml.jackson.databind.JsonNode;
+public class JsonPointer implements Comparable<JsonPointer> {
 
-public class JsonPointer {
-    final Document.Part part;
-    final URI target;
-    final JsonPath path;
+    private final String pointer;
 
-    Document.Part resolvedPart;
-    JsonNode resolvedValue;
-    JsonPath resolvedPath;
-    int indirections = 0;
-    boolean circular = false;
-
-    public JsonPointer(Document.Part part, URI target) {
-        this.part = part;
-        this.target = target;
-        this.path = parse(target.getFragment());
+    public JsonPointer(String pointer) {
+        if (pointer == null) {
+            throw new IllegalArgumentException("Json pointer can't be null");
+        }
+        this.pointer = pointer;
     }
 
-    static JsonPath parse(String pointer) {
+    JsonPath getJsonPath() {
+        return JsonPointer.toJsonPath(this);
+    }
+
+    URI getURI() {
+        return URI.create("#" + pointer);
+    }
+
+    public String toString() {
+        return this.pointer;
+    }
+
+    public String getValue() {
+        return pointer;
+    }
+
+    static JsonPath toJsonPath(JsonPointer pointer) {
         JsonPath result = new JsonPath();
 
-        if (pointer == null || pointer.equals("")) {
+        if (pointer == null || pointer.getValue() == null || pointer.getValue().equals("")) {
             // return empty path
             return result;
-        } else if (pointer.equals("/")) {
+        } else if (pointer.getValue().equals("/")) {
             // return path to "" key
             return result.withKey("");
         }
 
-        String[] segments = pointer.split("/");
-        for (String segment : segments) {
-            try {
-                result.add(URLDecoder.decode(segment.replaceAll("~1", "/").replaceAll("~0", "~"), "UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
-            }
+        for (String segment : pointer.getValue().split("/")) {
+            result.add(segment.replace("~1", "/").replace("~0", "~"));
         }
 
         // remove "" from the result of split
@@ -55,36 +51,37 @@ public class JsonPointer {
         return result;
     }
 
-    public JsonNode getValue() {
-        return this.resolvedValue;
+    public static JsonPointer fromJsonPath(JsonPath path) {
+        if (path.size() == 0) {
+            // empty JsonPointer, refers the entire document - return ""
+            return new JsonPointer("");
+        }
+
+        ArrayList<String> result = new ArrayList<String>();
+        for (String key : path) {
+            String escaped = key.replace("~", "~0").replace("/", "~1");
+            result.add(escaped);
+        }
+
+        return new JsonPointer("/" + String.join("/", result));
     }
 
-    public int getIndirections() {
-        return indirections;
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof JsonPointer) {
+            return this.pointer.equals(((JsonPointer) o).pointer);
+        }
+        return false;
     }
 
-    public boolean getCircular() {
-        return circular;
+    @Override
+    public final int hashCode() {
+        return this.pointer.hashCode();
     }
 
-    public Document.Part getPart() {
-        return this.resolvedPart;
+    @Override
+    public int compareTo(JsonPointer o) {
+        return pointer.compareTo(o.pointer);
     }
 
-    public JsonPath getPath() {
-        return this.resolvedPath;
-    }
-
-    public String getPointer() throws UnsupportedEncodingException {
-        return JsonPath.toPointer(resolvedPath);
-    }
-
-    public String getFile() {
-        return this.resolvedPart.location.getScheme() + ":" + this.resolvedPart.location.getSchemeSpecificPart();
-    }
-
-    public URI getTargetURI() throws URISyntaxException {
-        URI file = this.resolvedPart.location;
-        return new URI(file.getScheme(), file.getSchemeSpecificPart(), target.getFragment());
-    }
 }

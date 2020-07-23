@@ -11,6 +11,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -58,23 +59,26 @@ public class Bundler {
         Mapping mapping = new Mapping();
         inventory.sort();
 
-        String file = null, pointer = null, pathFromRoot = null;
+        String file = null;
         JsonPath path = null;
+        JsonPointer pointer = null;
+        JsonPath pathFromRoot = null;
         URI filename = null;
 
         for (Entry entry : inventory) {
             if (!entry.external) {
-                Util.setRef(entry.ref, "#" + entry.pointer);
+                Util.setRef(entry.ref, entry.pointer);
             } else if (entry.file.equals(file) && entry.pointer.equals(pointer)) {
-                Util.setRef(entry.ref, "#" + pathFromRoot);
+                Util.setRef(entry.ref, pathFromRoot.toPointer());
             } else if (entry.file.equals(file) && entry.path.isSubPathOf(path)) {
-                Util.setRef(entry.ref, "#" + pathFromRoot + entry.pointer.substring(pointer.length()));
+                List<String> tail = entry.path.subList(path.size(), entry.path.size());
+                Util.setRef(entry.ref, pathFromRoot.withKeys(tail).toPointer());
             } else {
                 file = entry.file;
                 filename = entry.part.getFilename();
                 pointer = entry.pointer;
                 path = entry.path;
-                pathFromRoot = entry.pathFromRoot.toPointer();
+                pathFromRoot = entry.pathFromRoot;
 
                 JsonNode value = entry.value;
                 if (Resolver.isExtendedRef(entry.ref)) {
@@ -82,7 +86,7 @@ public class Bundler {
                 }
 
                 if (entry.circular) {
-                    Util.setRef(entry.ref, "#" + pathFromRoot);
+                    Util.setRef(entry.ref, pathFromRoot.toPointer());
                 }
 
                 if (entry.path.size() >= 3 && entry.path.get(0).equals("components")) {
@@ -92,8 +96,8 @@ public class Bundler {
                         remapped.addAll(entry.path.subList(3, entry.path.size()));
                     }
                     Util.set(serializer, document.root.node, remapped, value);
-                    pathFromRoot = remapped.toPointer();
-                    Util.setRef(entry.ref, "#" + pathFromRoot);
+                    pathFromRoot = remapped;
+                    Util.setRef(entry.ref, pathFromRoot.toPointer());
                     insertMapping(mapping, remapped, filename, pointer);
                 } else {
                     Util.set(entry.parent, entry.key, value);
@@ -104,7 +108,7 @@ public class Bundler {
         return mapping;
     }
 
-    private void insertMapping(Mapping mapping, JsonPath path, URI filename, String pointer) {
+    private void insertMapping(Mapping mapping, JsonPath path, URI filename, JsonPointer pointer) {
         Mapping current = mapping;
         for (String key : path) {
             if (!current.children.containsKey(key)) {
@@ -130,14 +134,14 @@ public class Bundler {
             HashSet<URI> visited)
             throws URISyntaxException, JsonProcessingException, IOException, ReferenceResolutionException {
 
-        JsonNode ref = key == null ? parent : Util.get(parent, key);
-        JsonPointer pointer = Resolver.resolveReference(parser, part, ref, pathFromRoot);
-        inventory.add(parent, key, ref, pathFromRoot, pointer);
+        JsonNode refNode = key == null ? parent : Util.get(parent, key);
+        Reference reference = Resolver.resolveReference(parser, part, refNode, pathFromRoot);
+        inventory.add(parent, key, refNode, pathFromRoot, reference);
 
         // do not crawl circular pointers
-        if (!pointer.getCircular() && !visited.contains(pointer.getTargetURI())) {
-            visited.add(pointer.getTargetURI());
-            crawl(pointer.getPart(), pointer.getValue(), null, pathFromRoot, visited);
+        if (!reference.getCircular() && !visited.contains(reference.getResolvedTargetURI())) {
+            visited.add(reference.getResolvedTargetURI());
+            crawl(reference.getPart(), reference.getValue(), null, pathFromRoot, visited);
         }
     }
 

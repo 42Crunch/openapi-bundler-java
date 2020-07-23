@@ -23,9 +23,9 @@ public class Util {
         return null;
     }
 
-    public static void setRef(JsonNode obj, String value) {
+    public static void setRef(JsonNode obj, JsonPointer value) {
         if (obj.isObject()) {
-            ((ObjectNode) obj).put("$ref", value);
+            ((ObjectNode) obj).put("$ref", value.getURI().toString());
         } else {
             throw new IllegalArgumentException("Can't set $ref, argument is not an object");
         }

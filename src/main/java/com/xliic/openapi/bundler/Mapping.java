@@ -9,7 +9,7 @@ public class Mapping {
 
     public Location find(String pointer) throws UnsupportedEncodingException {
         Mapping current = this;
-        JsonPath path = JsonPointer.parse(pointer);
+        JsonPath path = new JsonPointer(pointer).getJsonPath();
 
         int i = 0;
         for (; i < path.size() && current.children.containsKey(path.get(i)); i++) {
@@ -34,6 +34,11 @@ public class Mapping {
     public static class Location {
         public final String file;
         public final String pointer;
+
+        public Location(String file, JsonPointer pointer) {
+            this.file = file;
+            this.pointer = pointer.getValue();
+        }
 
         public Location(String file, String pointer) {
             this.file = file;

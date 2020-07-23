@@ -32,7 +32,7 @@ public class InventoryTest {
 
     Inventory.Entry find(Inventory inventory, String pointer) throws UnsupportedEncodingException {
         for (Entry entry : inventory) {
-            if (JsonPath.toPointer(entry.pathFromRoot).equals(pointer)) {
+            if (entry.pathFromRoot.toPointer().getValue().equals(pointer)) {
                 return entry;
             }
         }
@@ -48,7 +48,7 @@ public class InventoryTest {
         assertEquals(false, entry.circular);
         assertEquals(false, entry.external);
         assertEquals(1, entry.depth);
-        assertEquals("/foo", entry.pointer);
+        assertEquals("/foo", entry.pointer.getValue());
     }
 
     @Test
@@ -60,8 +60,8 @@ public class InventoryTest {
         assertEquals(2, inventory.size());
         assertEquals(1, bar.depth);
         assertEquals(2, baz.depth);
-        assertEquals("/foo", bar.pointer);
-        assertEquals("/foo", baz.pointer);
+        assertEquals("/foo", bar.pointer.getValue());
+        assertEquals("/foo", baz.pointer.getValue());
         assertEquals("baz", baz.key);
         assertEquals("bar", bar.key);
         assertEquals("foofoo", bar.value.textValue());
@@ -83,8 +83,8 @@ public class InventoryTest {
         assertEquals(1, baz.depth);
         assertEquals(1, bar.indirections);
         assertEquals(0, baz.indirections);
-        assertEquals("/foo", bar.pointer);
-        assertEquals("/foo", baz.pointer);
+        assertEquals("/foo", bar.pointer.getValue());
+        assertEquals("/foo", baz.pointer.getValue());
         assertEquals(false, bar.extended);
         assertEquals(false, baz.extended);
         assertEquals(true, ext.extended);
@@ -96,8 +96,8 @@ public class InventoryTest {
         Inventory inventory = parse("simple", "ref-deep.yaml");
         Entry bar = find(inventory, "/bar");
         Entry baz = find(inventory, "/baz");
-        assertEquals("/foo", bar.pointer);
-        assertEquals("/foo/foo1", baz.pointer);
+        assertEquals("/foo", bar.pointer.getValue());
+        assertEquals("/foo/foo1", baz.pointer.getValue());
         assertEquals(0, bar.indirections);
         assertEquals(1, baz.indirections);
     }
