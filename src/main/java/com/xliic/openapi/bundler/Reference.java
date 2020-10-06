@@ -58,8 +58,13 @@ public class Reference {
         return JsonPointer.fromJsonPath(resolvedPath);
     }
 
-    public String getFile() {
-        return this.resolvedPart.location.getScheme() + ":" + this.resolvedPart.location.getSchemeSpecificPart();
+    public URI getFile() {
+        try {
+            return new URI(this.resolvedPart.location.getScheme(), this.resolvedPart.location.getSchemeSpecificPart(),
+                    null);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
     }
 
     public URI getSourceURI() {

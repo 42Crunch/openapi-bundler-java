@@ -61,8 +61,8 @@ public class Document {
             return Document.this;
         }
 
-        public String getDocumentFile() {
-            return Document.this.root.location.toString();
+        public URI getDocumentFile() {
+            return Document.this.root.location;
         }
 
         public URI getFilename() {

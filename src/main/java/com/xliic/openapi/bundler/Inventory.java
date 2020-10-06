@@ -7,6 +7,7 @@ package com.xliic.openapi.bundler;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -94,14 +95,14 @@ public class Inventory implements Iterable<Inventory.Entry> {
         JsonPath pathFromRoot;
         JsonPath path;
         JsonPointer pointer;
-        String file;
+        URI file;
         int depth;
         int indirections;
         boolean extended;
         boolean external;
         boolean circular;
 
-        public Entry(JsonNode parent, String key, JsonNode ref, JsonNode value, JsonPath pathFromRoot, String file,
+        public Entry(JsonNode parent, String key, JsonNode ref, JsonNode value, JsonPath pathFromRoot, URI file,
                 JsonPointer pointer, JsonPath path, int indirections, boolean circular, Document.Part part) {
             this.ref = ref;
             this.parent = parent;

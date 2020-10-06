@@ -59,7 +59,7 @@ public class Bundler {
         Mapping mapping = new Mapping();
         inventory.sort();
 
-        String file = null;
+        URI file = null;
         JsonPath path = null;
         JsonPointer pointer = null;
         JsonPath pathFromRoot = null;

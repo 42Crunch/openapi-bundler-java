@@ -8,6 +8,7 @@ package com.xliic.openapi.bundler;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
@@ -35,7 +36,11 @@ class TestWorkspace implements Workspace {
 
     @Override
     public URI resolve(String filename) {
-        return workspace.resolve(filename);
+        try {
+            return workspace.resolve(new URI(null, filename, null));
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
     }
 
     @Override
