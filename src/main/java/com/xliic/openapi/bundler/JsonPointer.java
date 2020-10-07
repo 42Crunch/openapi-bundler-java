@@ -1,6 +1,7 @@
 package com.xliic.openapi.bundler;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 public class JsonPointer implements Comparable<JsonPointer> {
@@ -19,7 +20,11 @@ public class JsonPointer implements Comparable<JsonPointer> {
     }
 
     URI getURI() {
-        return URI.create("#" + pointer);
+        try {
+            return new URI(null, null, pointer);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
     }
 
     public String toString() {

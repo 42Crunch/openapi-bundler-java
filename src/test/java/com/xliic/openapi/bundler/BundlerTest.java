@@ -68,10 +68,10 @@ public class BundlerTest {
         BundledJsonNode two = bundle("circular", "two-level.yaml");
         BundledJsonNode multiple = bundle("circular", "multiple-ref-traversal.yml");
 
-        assertEquals("#/definitions/Foo", multiple.at("/definitions/Bar/$ref").textValue());
         assertEquals("#/definitions/User", simple.at("/definitions/User/$ref").textValue());
+        assertEquals("#/definitions/User%7B%7D", simple.at("/definitions/User{}/$ref").textValue());
         assertEquals("#/definitions/User", two.at("/definitions/User/items/$ref").textValue());
-
+        assertEquals("#/definitions/Foo", multiple.at("/definitions/Bar/$ref").textValue());
     }
 
     @Test
