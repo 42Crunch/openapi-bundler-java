@@ -5,8 +5,6 @@
 
 package com.xliic.openapi.bundler;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 

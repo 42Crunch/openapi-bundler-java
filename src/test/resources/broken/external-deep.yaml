@@ -1,0 +1,2 @@
+foo:
+  $ref: "external-deep-one.yaml#/bar"

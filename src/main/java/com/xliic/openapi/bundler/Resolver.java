@@ -51,7 +51,7 @@ public class Resolver {
             if (reference.resolvedValue == null) {
                 throw new ReferenceResolutionException(
                         String.format("Failed to resolve JSON Pointer \"%s\"", reference.targetPointer),
-                        reference.sourcePart.location, reference.sourcePointer.getValue(),
+                        reference.sourcePart.location, reference.sourcePointer.getValue() + "/$ref",
                         reference.targetPointer.getURI().toString());
             }
 

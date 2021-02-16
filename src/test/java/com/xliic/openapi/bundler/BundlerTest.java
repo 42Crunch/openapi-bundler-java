@@ -83,7 +83,7 @@ public class BundlerTest {
         });
 
         assertTrue(ex.sourceFile.getPath().endsWith("one-ref.yaml"));
-        assertEquals("/bar", ex.sourcePointer);
+        assertEquals("/bar/$ref", ex.sourcePointer);
         assertEquals("#/foo-foo", ex.target);
 
     }
@@ -100,8 +100,24 @@ public class BundlerTest {
         // so exception happens when processing one-ref, and
         // contains only information about one-ref.yaml
         assertTrue(ex.sourceFile.getPath().endsWith("one-ref.yaml"));
-        assertEquals("/bar", ex.sourcePointer);
+        assertEquals("/bar/$ref", ex.sourcePointer);
         assertEquals("#/foo-foo", ex.target);
+    }
+
+    @Test
+    void testExceptionExternalDeep() throws JsonProcessingException, IOException, URISyntaxException,
+            InterruptedException, ReferenceResolutionException {
+
+        ReferenceResolutionException ex = assertThrows(ReferenceResolutionException.class, () -> {
+            bundle("broken", "external-deep.yaml");
+        });
+
+        // bundling starts at external-deep.yaml, goes to external-deep-two.yaml
+        // and fails to resolve reference "external-deep-two.yaml#/baz"
+        // the path where the reference occurs is /bar
+        assertTrue(ex.sourceFile.getPath().endsWith("external-deep-one.yaml"));
+        assertEquals("#/baz", ex.target);
+        assertEquals("/bar/$ref", ex.sourcePointer);
     }
 
     @Test
