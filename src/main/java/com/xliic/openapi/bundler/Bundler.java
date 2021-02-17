@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +21,7 @@ import com.xliic.openapi.bundler.Inventory.Entry;
 public class Bundler {
 
     private Inventory inventory = new Inventory();
+    private List<ReferenceResolutionFailure> failures = new ArrayList<ReferenceResolutionFailure>();
     private Serializer serializer;
     private Parser parser;
 
@@ -29,28 +31,43 @@ public class Bundler {
     }
 
     public Mapping bundle(Document document)
-            throws URISyntaxException, JsonProcessingException, IOException, ReferenceResolutionException {
-        crawl(document.root, document.root.node, null, new JsonPath(), new HashSet<>());
-        return remap(document);
+            throws URISyntaxException, JsonProcessingException, IOException, BundlingException {
+        crawl(document.root, document.root.node, null, new JsonPath(), new JsonPath(), new HashSet<>());
+        if (failures.size() == 0) {
+            return remap(document);
+        }
+        throw new BundlingException("Failed to bundle OpenAPI file", failures);
     }
 
-    public void crawl(final Document.Part part, final JsonNode parent, String key, JsonPath pathFromRoot,
-            HashSet<URI> visited)
-            throws URISyntaxException, JsonProcessingException, IOException, ReferenceResolutionException {
+    public void crawl(final Document.Part part, final JsonNode parent, String key, JsonPath path, JsonPath pathFromRoot,
+            HashSet<URI> visited) throws URISyntaxException, JsonProcessingException, IOException {
         final JsonNode node = key == null ? parent : Util.get(parent, key);
 
         if (Resolver.isRef(node)) {
-            addToInventory(part, parent, key, pathFromRoot, visited);
+            Reference reference = new Reference(part, node, path.toPointer());
+            Resolver.resolveReference(parser, reference);
+            if (reference.isResolved()) {
+                inventory.add(parent, key, pathFromRoot, reference);
+                // don't crawl unresolved and circular references
+                if (reference.isResolved() && !reference.circular && !visited.contains(reference.getResolvedURI())) {
+                    visited.add(reference.getResolvedURI());
+                    crawl(reference.resolvedPart, reference.resolvedValue, null, reference.resolvedPath, pathFromRoot,
+                            visited);
+                }
+            } else {
+                failures.add(reference.failure);
+            }
+
         } else if (node.isObject()) {
             Iterator<String> iterator = node.fieldNames();
             while (iterator.hasNext()) {
                 String fieldName = iterator.next();
-                crawl(part, node, fieldName, pathFromRoot.withKey(fieldName), visited);
+                crawl(part, node, fieldName, path.withKey(fieldName), pathFromRoot.withKey(fieldName), visited);
             }
         } else if (node.isArray()) {
             for (int i = 0; i < node.size(); i++) {
                 String index = Integer.toString(i);
-                crawl(part, node, index, pathFromRoot.withKey(index), visited);
+                crawl(part, node, index, path.withKey(index), pathFromRoot.withKey(index), visited);
             }
         }
     }
@@ -129,20 +146,4 @@ public class Bundler {
     public Inventory getInventory() {
         return inventory;
     }
-
-    private void addToInventory(Document.Part part, JsonNode parent, String key, JsonPath pathFromRoot,
-            HashSet<URI> visited)
-            throws URISyntaxException, JsonProcessingException, IOException, ReferenceResolutionException {
-
-        JsonNode refNode = key == null ? parent : Util.get(parent, key);
-        Reference reference = Resolver.resolveReference(parser, part, refNode, pathFromRoot);
-        inventory.add(parent, key, refNode, pathFromRoot, reference);
-
-        // do not crawl circular pointers
-        if (!reference.getCircular() && !visited.contains(reference.getResolvedTargetURI())) {
-            visited.add(reference.getResolvedTargetURI());
-            crawl(reference.getPart(), reference.getValue(), null, pathFromRoot, visited);
-        }
-    }
-
 }

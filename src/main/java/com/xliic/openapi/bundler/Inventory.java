@@ -18,11 +18,12 @@ public class Inventory implements Iterable<Inventory.Entry> {
 
     ArrayList<Inventory.Entry> inventory = new ArrayList<Inventory.Entry>();
 
-    public void add(JsonNode parent, String key, JsonNode ref, JsonPath pathFromRoot, Reference reference)
+    public void add(JsonNode parent, String key, JsonPath pathFromRoot, Reference reference)
             throws UnsupportedEncodingException {
-        Entry entry = new Inventory.Entry(parent, key, ref, reference.getValue(), pathFromRoot, reference.getFile(),
-                reference.getPointer(), reference.getPath(), reference.getIndirections(), reference.getCircular(),
-                reference.getPart());
+
+        Entry entry = new Inventory.Entry(parent, key, reference.node, reference.resolvedValue, pathFromRoot,
+                reference.getResolvedFileURI(), reference.getResolvedPointer(), reference.resolvedPath,
+                reference.indirections, reference.circular, reference.resolvedPart);
 
         Entry existingEntryToRemove = null;
         for (Entry existing : inventory) {

@@ -11,73 +11,56 @@ import java.net.URISyntaxException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class Reference {
-    final Document.Part sourcePart;
-    final JsonPointer sourcePointer;
-
-    final Document.Part targetPart;
-    final JsonPointer targetPointer;
+    final Document.Part part;
+    final JsonNode node;
+    final JsonPointer pointer;
 
     Document.Part resolvedPart;
     JsonNode resolvedValue;
     JsonPath resolvedPath;
 
-    final JsonPath path;
+    ReferenceResolutionFailure failure;
+
     int indirections = 0;
     boolean circular = false;
 
-    public Reference(Document.Part sourcePart, JsonPointer sourcePointer, Document.Part targetPart,
-            JsonPointer targetPointer) {
-        this.sourcePart = sourcePart;
-        this.sourcePointer = sourcePointer;
-        this.targetPart = targetPart;
-        this.targetPointer = targetPointer;
-        this.path = targetPointer.getJsonPath();
+    public Reference(Document.Part part, JsonNode node, JsonPointer pointer) {
+        this.part = part;
+        this.node = node;
+        this.pointer = pointer;
     }
 
-    public JsonNode getValue() {
-        return this.resolvedValue;
+    public boolean isResolved() {
+        return this.resolvedValue != null;
     }
 
-    public int getIndirections() {
-        return indirections;
-    }
-
-    public boolean getCircular() {
-        return circular;
-    }
-
-    public Document.Part getPart() {
-        return this.resolvedPart;
-    }
-
-    public JsonPath getPath() {
-        return this.resolvedPath;
-    }
-
-    public JsonPointer getPointer() {
+    public JsonPointer getResolvedPointer() {
         return JsonPointer.fromJsonPath(resolvedPath);
     }
 
-    public URI getFile() {
+    public URI getURI() {
         try {
-            return new URI(this.resolvedPart.location.getScheme(), this.resolvedPart.location.getSchemeSpecificPart(),
-                    null);
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(e.getMessage(), e);
-        }
-    }
-
-    public URI getSourceURI() {
-        try {
-            return new URI(sourcePart.location.getScheme(), sourcePart.location.getSchemeSpecificPart(),
-                    sourcePointer.getValue());
+            return new URI(part.location.getScheme(), part.location.getSchemeSpecificPart(), pointer.getValue());
         } catch (URISyntaxException e) {
             throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
         }
     }
 
-    public URI getResolvedTargetURI() throws URISyntaxException {
-        return new URI(resolvedPart.location.getScheme(), resolvedPart.location.getSchemeSpecificPart(),
-                resolvedPath.toPointer().getValue());
+    public URI getResolvedURI() {
+        try {
+            return new URI(resolvedPart.location.getScheme(), resolvedPart.location.getSchemeSpecificPart(),
+                    resolvedPath.toPointer().getValue());
+        } catch (URISyntaxException e) {
+            throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
+        }
     }
+
+    public URI getResolvedFileURI() {
+        try {
+            return new URI(resolvedPart.location.getScheme(), resolvedPart.location.getSchemeSpecificPart(), null);
+        } catch (URISyntaxException e) {
+            throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
+        }
+    }
+
 }
