@@ -1,0 +1,22 @@
+openapi: '3.0.2'
+
+info:
+  version: "1.0.1"
+  title: Foo
+
+paths:
+  /foo1:
+    post:
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "./schemas.yaml#/components/schemas/FooSchema"
+
+  /foo2:
+    post:
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "./schemas.yaml#/components/schemas/FooSchema"

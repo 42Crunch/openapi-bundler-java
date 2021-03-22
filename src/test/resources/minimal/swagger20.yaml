@@ -1,0 +1,22 @@
+swagger: '2.0'
+
+info:
+  version: "1.0.1"
+  title: Foo
+
+paths:
+  /foo1:
+    post:
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "./definitions.yaml#/definitions/FooSchema"
+
+  /foo2:
+    post:
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "./definitions.yaml#/definitions/FooSchema"

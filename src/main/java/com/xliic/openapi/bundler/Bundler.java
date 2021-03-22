@@ -107,10 +107,23 @@ public class Bundler {
                 }
 
                 if (entry.path.size() >= 3 && entry.path.get(0).equals("components")) {
-                    JsonPath remapped = new JsonPath("components", entry.path.get(1),
+                    // remap entries to #/components
+                    JsonPath remapped = new JsonPath(entry.path.get(0), entry.path.get(1),
                             externalEntryToComponentName(entry.part, entry.path));
                     if (entry.path.size() > 3) {
                         remapped.addAll(entry.path.subList(3, entry.path.size()));
+                    }
+                    Util.set(serializer, document.root.node, remapped, value);
+                    pathFromRoot = remapped;
+                    Util.setRef(entry.ref, pathFromRoot.toPointer());
+                    insertMapping(mapping, remapped, filename, pointer);
+                } else if (entry.path.size() >= 2 && (entry.path.get(0).equals("parameters")
+                        || entry.path.get(0).equals("definitions") || entry.path.get(0).equals("responses"))) {
+                    // remap entries to #/parameters or #/definitions or #/responses
+                    JsonPath remapped = new JsonPath(entry.path.get(0), entry.path.get(1),
+                            externalEntryToComponentName(entry.part, entry.path));
+                    if (entry.path.size() > 2) {
+                        remapped.addAll(entry.path.subList(2, entry.path.size()));
                     }
                     Util.set(serializer, document.root.node, remapped, value);
                     pathFromRoot = remapped;

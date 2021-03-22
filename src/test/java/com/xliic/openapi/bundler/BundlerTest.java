@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -196,5 +197,18 @@ public class BundlerTest {
         assertEquals("/bar/$ref", re.sourcePointer);
         assertTrue(re.sourceFile.getPath().endsWith("bad-uri.yaml"));
         assertTrue(re.message.contains("Failed to parse $ref: Illegal character"));
+    }
+
+    @Test
+    void testSwagger20()
+            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException, BundlingException {
+        // make sure that components are mapped to
+        // nodes under /definitions and /components
+        // even if the main files dont' have these nodes
+        BundledJsonNode bundled20 = bundle("minimal", "swagger20.yaml");
+        assertNotNull(bundled20.at("/definitions/FooSchema"));
+
+        BundledJsonNode bundled30 = bundle("minimal", "openapi30.yaml");
+        assertNotNull(bundled30.at("/components/schemas/FooSchema"));
     }
 }
