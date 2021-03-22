@@ -200,15 +200,15 @@ public class BundlerTest {
     }
 
     @Test
-    void testSwagger20()
+    void testSwaggerRemapEmpty()
             throws JsonProcessingException, IOException, URISyntaxException, InterruptedException, BundlingException {
         // make sure that components are mapped to
         // nodes under /definitions and /components
         // even if the main files dont' have these nodes
         BundledJsonNode bundled20 = bundle("minimal", "swagger20.yaml");
-        assertNotNull(bundled20.at("/definitions/FooSchema"));
+        assertNotNull(bundled20.at("/definitions/FooSchema/type"));
 
         BundledJsonNode bundled30 = bundle("minimal", "openapi30.yaml");
-        assertNotNull(bundled30.at("/components/schemas/FooSchema"));
+        assertNotNull(bundled30.at("/components/schemas/FooSchema/type"));
     }
 }

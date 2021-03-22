@@ -120,7 +120,7 @@ public class Bundler {
                 } else if (entry.path.size() >= 2 && (entry.path.get(0).equals("parameters")
                         || entry.path.get(0).equals("definitions") || entry.path.get(0).equals("responses"))) {
                     // remap entries to #/parameters or #/definitions or #/responses
-                    JsonPath remapped = new JsonPath(entry.path.get(0), entry.path.get(1),
+                    JsonPath remapped = new JsonPath(entry.path.get(0),
                             externalEntryToComponentName(entry.part, entry.path));
                     if (entry.path.size() > 2) {
                         remapped.addAll(entry.path.subList(2, entry.path.size()));
