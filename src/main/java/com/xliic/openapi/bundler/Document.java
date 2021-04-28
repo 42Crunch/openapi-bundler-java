@@ -12,7 +12,7 @@ import java.util.HashMap;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class Document {
-    Part root;
+    public final Part root;
     Parts parts = new Parts();
     URI base;
 
