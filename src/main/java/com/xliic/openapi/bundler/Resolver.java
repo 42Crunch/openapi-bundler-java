@@ -12,6 +12,7 @@ import java.util.Iterator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.xliic.common.WorkspaceException;
 import com.xliic.openapi.bundler.Document.Part;
 
 public class Resolver {
@@ -40,7 +41,7 @@ public class Resolver {
         } catch (URISyntaxException e) {
             reference.failure = new ReferenceResolutionFailure(
                     String.format("Failed to parse $ref: %s", e.getMessage()), reference.part.location,
-                    reference.pointer.toString() + "/$ref", "");
+                    reference.pointer.toString() + "/$ref", "", e);
 
             return;
         }
@@ -48,10 +49,10 @@ public class Resolver {
         Document.Part part;
         try {
             part = getPart(parser, reference.part, ref);
-        } catch (DocumentLoadingException | URISyntaxException e) {
+        } catch (WorkspaceException | DocumentLoadingException | URISyntaxException e) {
             reference.failure = new ReferenceResolutionFailure(
                     String.format("Failed to load external file: %s", e.getMessage()), reference.part.location,
-                    reference.pointer.toString() + "/$ref", ref.toString());
+                    reference.pointer.toString() + "/$ref", ref.toString(), e);
             return;
         }
 
@@ -76,7 +77,7 @@ public class Resolver {
             if (resolved == null) {
                 reference.failure = new ReferenceResolutionFailure(
                         String.format("Failed to resolve JSON Pointer: %s", ref), reference.part.location,
-                        reference.pointer.toString() + "/$ref", resolvedPath.toPointer().toString());
+                        reference.pointer.toString() + "/$ref", resolvedPath.toPointer().toString(), null);
                 return;
             }
 
@@ -139,13 +140,15 @@ public class Resolver {
     }
 
     private static Part getPart(Parser parser, Document.Part part, URI target)
-            throws DocumentLoadingException, URISyntaxException {
+            throws DocumentLoadingException, URISyntaxException, WorkspaceException {
         Document.Part targetPart = Document.getTargetPart(part, target);
         if (targetPart == null) {
             URI targetFileUri = Document.getTargetPartUri(part, target);
             try {
                 JsonNode root = parser.readTree(targetFileUri);
                 targetPart = part.getDocument().createPart(targetFileUri, root);
+            } catch (WorkspaceException e) {
+                throw e;
             } catch (Exception e) {
                 throw new DocumentLoadingException(String.format("Failed to load external reference: %s", e),
                         targetFileUri);

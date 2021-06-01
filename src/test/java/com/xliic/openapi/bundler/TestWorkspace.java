@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
+import com.xliic.common.ContentType;
 import com.xliic.common.Workspace;
 
 class TestWorkspace implements Workspace {
@@ -46,5 +47,13 @@ class TestWorkspace implements Workspace {
     @Override
     public URI relativize(URI uri) {
         return workspace.relativize(uri);
+    }
+
+    @Override
+    public ContentType getContentType(URI uri) {
+        if (uri.getPath().toLowerCase().endsWith(".json")) {
+            return ContentType.JSON;
+        }
+        return ContentType.YAML;
     }
 }

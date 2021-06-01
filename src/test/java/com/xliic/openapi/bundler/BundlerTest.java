@@ -17,13 +17,14 @@ import java.net.URISyntaxException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xliic.common.WorkspaceException;
 import com.xliic.openapi.bundler.Mapping.Location;
 
 import org.junit.jupiter.api.Test;
 
 public class BundlerTest {
-    BundledJsonNode bundle(String dirname, String filename)
-            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException, BundlingException {
+    BundledJsonNode bundle(String dirname, String filename) throws JsonProcessingException, IOException,
+            URISyntaxException, InterruptedException, BundlingException, WorkspaceException {
         TestWorkspace workspace = new TestWorkspace(dirname);
         Parser parser = new Parser(workspace);
         Serializer serializer = new Serializer();
@@ -46,8 +47,8 @@ public class BundlerTest {
     }
 
     @Test
-    void testBundling()
-            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException, BundlingException {
+    void testBundling() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            BundlingException, WorkspaceException {
         BundledJsonNode bundled = bundle("multifile-petstore", "openapi.yaml");
         // check that bundled output has expected structure
         assertEquals("List all pets", bundled.at("/paths/~1pets/get/summary").textValue());
@@ -58,8 +59,8 @@ public class BundlerTest {
     }
 
     @Test
-    void testMapping()
-            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException, BundlingException {
+    void testMapping() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            BundlingException, WorkspaceException {
         BundledJsonNode bundled = bundle("multifile-petstore", "openapi.yaml");
         // check that a json pointer in a bundled document can be mapped back to its
         // original file
@@ -72,8 +73,8 @@ public class BundlerTest {
     }
 
     @Test
-    void testCircular()
-            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException, BundlingException {
+    void testCircular() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            BundlingException, WorkspaceException {
         BundledJsonNode simple = bundle("circular", "simple-external.yaml");
         BundledJsonNode two = bundle("circular", "two-level.yaml");
         BundledJsonNode multiple = bundle("circular", "multiple-ref-traversal.yml");
@@ -200,8 +201,8 @@ public class BundlerTest {
     }
 
     @Test
-    void testSwaggerRemapEmpty()
-            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException, BundlingException {
+    void testSwaggerRemapEmpty() throws JsonProcessingException, IOException, URISyntaxException, InterruptedException,
+            BundlingException, WorkspaceException {
         // make sure that components are mapped to
         // nodes under /definitions and /components
         // even if the main files dont' have these nodes

@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.URI;
 
 public interface Workspace {
-    public String read(URI uri) throws IOException, InterruptedException;
+    public String read(URI uri) throws IOException, InterruptedException, WorkspaceException;
 
     public boolean exists(URI uri) throws IOException, InterruptedException;
 

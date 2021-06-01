@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.xliic.common.ContentType;
 import com.xliic.common.Workspace;
+import com.xliic.common.WorkspaceException;
 
 public class Parser {
     private ObjectMapper jsonMapper;
@@ -29,14 +30,14 @@ public class Parser {
     }
 
     public Document parse(URI uri)
-            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException {
+            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException, WorkspaceException {
         JsonNode root = readTree(uri);
         Document document = new Document(uri, root);
         return document;
     }
 
-    public JsonNode readTree(URI uri)
-            throws JsonMappingException, JsonProcessingException, IOException, InterruptedException {
+    public JsonNode readTree(URI uri) throws JsonMappingException, JsonProcessingException, IOException,
+            InterruptedException, WorkspaceException {
         if (workspace.getContentType(uri) == ContentType.JSON) {
             return jsonMapper.readTree(workspace.read(uri));
         }
