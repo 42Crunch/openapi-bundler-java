@@ -16,4 +16,6 @@ public interface Workspace {
     public URI relativize(URI uri);
 
     public URI resolve(String filename);
+
+    public ContentType getContentType(URI uri);
 }

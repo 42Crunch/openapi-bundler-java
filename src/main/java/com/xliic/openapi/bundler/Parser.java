@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.xliic.common.ContentType;
 import com.xliic.common.Workspace;
 
 public class Parser {
@@ -36,7 +37,7 @@ public class Parser {
 
     public JsonNode readTree(URI uri)
             throws JsonMappingException, JsonProcessingException, IOException, InterruptedException {
-        if (uri.getPath().toLowerCase().endsWith(".json")) {
+        if (workspace.getContentType(uri) == ContentType.JSON) {
             return jsonMapper.readTree(workspace.read(uri));
         }
         return yamlMapper.readTree(workspace.read(uri));
