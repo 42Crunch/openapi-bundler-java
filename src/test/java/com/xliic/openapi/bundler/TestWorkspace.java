@@ -31,8 +31,10 @@ class TestWorkspace implements Workspace {
 
         if (uri.getPath().toLowerCase().endsWith(".json")) {
             return new WorkspaceContent(data, ContentType.JSON);
+        } else if (uri.getPath().toLowerCase().endsWith(".yaml") || uri.getPath().toLowerCase().endsWith(".yml")) {
+            return new WorkspaceContent(data, ContentType.YAML);
         }
-        return new WorkspaceContent(data, ContentType.YAML);
+        return new WorkspaceContent(data, null);
     }
 
     @Override

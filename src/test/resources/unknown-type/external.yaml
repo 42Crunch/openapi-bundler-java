@@ -1,0 +1,2 @@
+foo:
+  $ref: "unknown.txt#/unknown"

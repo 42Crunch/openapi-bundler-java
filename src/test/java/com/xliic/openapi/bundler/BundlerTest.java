@@ -124,6 +124,26 @@ public class BundlerTest {
     }
 
     @Test
+    void testExceptionUnknownType()
+            throws JsonProcessingException, IOException, URISyntaxException, InterruptedException, BundlingException {
+
+        BundlingException ex = assertThrows(BundlingException.class, () -> {
+            bundle("unknown-type", "external.yaml");
+        });
+
+        assertEquals(1, ex.getFailures().size());
+
+        ReferenceResolutionFailure re = ex.getFailures().get(0);
+
+        // reference from external.yaml points to unknown.txt
+        assertTrue(re.sourceFile.getPath().endsWith("external.yaml"));
+        assertTrue(re.message.contains("Unknown content type"));
+
+        assertEquals("/foo/$ref", re.sourcePointer);
+        assertEquals("unknown.txt#/unknown", re.target);
+    }
+
+    @Test
     void testExceptionExternalDeep()
             throws JsonProcessingException, IOException, URISyntaxException, InterruptedException, BundlingException {
 

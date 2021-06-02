@@ -45,6 +45,6 @@ public class Parser {
         } else if (content.type == ContentType.YAML) {
             return yamlMapper.readTree(content.data);
         }
-        throw new WorkspaceException(String.format("Can't parse % unknown content type", uri));
+        throw new WorkspaceException(String.format("Unknown content type", uri));
     }
 }
