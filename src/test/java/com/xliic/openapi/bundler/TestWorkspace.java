@@ -14,6 +14,7 @@ import java.nio.file.Files;
 
 import com.xliic.common.ContentType;
 import com.xliic.common.Workspace;
+import com.xliic.common.WorkspaceContent;
 
 class TestWorkspace implements Workspace {
 
@@ -24,9 +25,14 @@ class TestWorkspace implements Workspace {
     }
 
     @Override
-    public String read(URI uri) throws IOException, InterruptedException {
+    public WorkspaceContent read(URI uri) throws IOException, InterruptedException {
         File file = new File(uri.getPath());
-        return new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+        String data = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+
+        if (uri.getPath().toLowerCase().endsWith(".json")) {
+            return new WorkspaceContent(data, ContentType.JSON);
+        }
+        return new WorkspaceContent(data, ContentType.YAML);
     }
 
     @Override
@@ -49,11 +55,4 @@ class TestWorkspace implements Workspace {
         return workspace.relativize(uri);
     }
 
-    @Override
-    public ContentType getContentType(URI uri) {
-        if (uri.getPath().toLowerCase().endsWith(".json")) {
-            return ContentType.JSON;
-        }
-        return ContentType.YAML;
-    }
 }

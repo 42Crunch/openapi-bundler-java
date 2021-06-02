@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.xliic.common.ContentType;
 import com.xliic.common.Workspace;
+import com.xliic.common.WorkspaceContent;
 import com.xliic.common.WorkspaceException;
 
 public class Parser {
@@ -38,9 +39,12 @@ public class Parser {
 
     public JsonNode readTree(URI uri) throws JsonMappingException, JsonProcessingException, IOException,
             InterruptedException, WorkspaceException {
-        if (workspace.getContentType(uri) == ContentType.JSON) {
-            return jsonMapper.readTree(workspace.read(uri));
+        WorkspaceContent content = workspace.read(uri);
+        if (content.type == ContentType.JSON) {
+            return jsonMapper.readTree(content.data);
+        } else if (content.type == ContentType.YAML) {
+            return yamlMapper.readTree(content.data);
         }
-        return yamlMapper.readTree(workspace.read(uri));
+        throw new WorkspaceException(String.format("Can't parse % unknown content type", uri));
     }
 }

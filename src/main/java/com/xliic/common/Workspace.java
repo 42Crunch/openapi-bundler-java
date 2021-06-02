@@ -9,13 +9,11 @@ import java.io.IOException;
 import java.net.URI;
 
 public interface Workspace {
-    public String read(URI uri) throws IOException, InterruptedException, WorkspaceException;
+    public WorkspaceContent read(URI uri) throws IOException, InterruptedException, WorkspaceException;
 
     public boolean exists(URI uri) throws IOException, InterruptedException;
 
     public URI relativize(URI uri);
 
     public URI resolve(String filename);
-
-    public ContentType getContentType(URI uri);
 }
