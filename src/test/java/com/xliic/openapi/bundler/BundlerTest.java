@@ -65,7 +65,7 @@ public class BundlerTest {
         // check that a json pointer in a bundled document can be mapped back to its
         // original file
         Location error = bundled.original("/components/schemas/Error");
-        assertEquals("schemas/error.yaml", error.file);
+        assertEquals("schemas/error.yaml", error.uri.getPath());
         assertEquals("", error.pointer);
         // for pointers to entities in the main file which don't resolve
         // to an external file, return null

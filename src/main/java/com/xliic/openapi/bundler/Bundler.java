@@ -147,7 +147,7 @@ public class Bundler {
             current = current.children.get(key);
         }
         // TODO check that current.value is empty
-        current.value = new Mapping.Location(filename.getPath(), pointer);
+        current.value = new Mapping.Location(filename, pointer);
     }
 
     private String externalEntryToComponentName(Document.Part part, JsonPath path) throws UnsupportedEncodingException {

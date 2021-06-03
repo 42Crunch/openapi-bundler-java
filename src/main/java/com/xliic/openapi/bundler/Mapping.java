@@ -1,6 +1,7 @@
 package com.xliic.openapi.bundler;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.util.HashMap;
 
 public class Mapping {
@@ -25,23 +26,23 @@ public class Mapping {
 
         if (i < path.size()) {
             JsonPath remaining = new JsonPath(path.subList(i, path.size()));
-            return new Location(value.file, value.pointer + remaining.toPointer());
+            return new Location(value.uri, value.pointer + remaining.toPointer());
         }
 
         return value;
     }
 
     public static class Location {
-        public final String file;
+        public final URI uri;
         public final String pointer;
 
-        public Location(String file, JsonPointer pointer) {
-            this.file = file;
+        public Location(URI uri, JsonPointer pointer) {
+            this.uri = uri;
             this.pointer = pointer.getValue();
         }
 
-        public Location(String file, String pointer) {
-            this.file = file;
+        public Location(URI uri, String pointer) {
+            this.uri = uri;
             this.pointer = pointer;
         }
     }
