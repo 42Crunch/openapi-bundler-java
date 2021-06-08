@@ -154,7 +154,7 @@ public class Bundler {
 
     private String externalEntryToComponentName(Document.Part part, JsonPath path) throws UnsupportedEncodingException {
         String name = part.getFilename().toString() + path.toPointer();
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(name.getBytes(StandardCharsets.UTF_8.toString()));
+        return name.replaceAll("[~\\/\\#:%]", "-");
     }
 
     public Inventory getInventory() {
