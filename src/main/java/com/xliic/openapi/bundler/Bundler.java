@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -152,8 +154,7 @@ public class Bundler {
 
     private String externalEntryToComponentName(Document.Part part, JsonPath path) throws UnsupportedEncodingException {
         String name = part.getFilename().toString() + path.toPointer();
-        // FIXME to workaround broken path handling in assessd
-        return name.replaceAll("/", "-").replaceAll("#", "-");
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(name.getBytes(StandardCharsets.UTF_8.toString()));
     }
 
     public Inventory getInventory() {
