@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Serializer {
-    private ObjectMapper mapper;
+    protected final ObjectMapper mapper;
 
     public Serializer() {
         mapper = new ObjectMapper();
