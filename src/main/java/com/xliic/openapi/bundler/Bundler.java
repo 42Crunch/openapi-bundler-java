@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.xliic.openapi.bundler.Inventory.Entry;
@@ -157,6 +158,7 @@ public class Bundler {
         return name.replaceAll("[~\\/\\#:%]", "-");
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Inventory getInventory() {
         return inventory;
     }

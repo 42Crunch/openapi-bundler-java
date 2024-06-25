@@ -4,7 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
-public class JsonPointer implements Comparable<JsonPointer> {
+public final class JsonPointer implements Comparable<JsonPointer> {
 
     private final String pointer;
 

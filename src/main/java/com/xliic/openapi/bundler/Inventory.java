@@ -14,6 +14,8 @@ import java.util.Iterator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 public class Inventory implements Iterable<Inventory.Entry> {
 
     ArrayList<Inventory.Entry> inventory = new ArrayList<Inventory.Entry>();
@@ -87,6 +89,7 @@ public class Inventory implements Iterable<Inventory.Entry> {
 
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public static class Entry {
         Document.Part part;
         JsonNode ref;
@@ -103,6 +106,7 @@ public class Inventory implements Iterable<Inventory.Entry> {
         boolean external;
         boolean circular;
 
+        @SuppressFBWarnings("EI_EXPOSE_REP2")
         public Entry(JsonNode parent, String key, JsonNode ref, JsonNode value, JsonPath pathFromRoot, URI file,
                 JsonPointer pointer, JsonPath path, int indirections, boolean circular, Document.Part part) {
             this.ref = ref;
