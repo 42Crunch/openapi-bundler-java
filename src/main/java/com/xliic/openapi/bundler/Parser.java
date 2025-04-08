@@ -14,6 +14,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactoryBuilder;
+
+import org.yaml.snakeyaml.LoaderOptions;
+
 import com.xliic.common.ContentType;
 import com.xliic.common.Workspace;
 import com.xliic.common.WorkspaceContent;
@@ -24,9 +28,38 @@ public class Parser {
     private ObjectMapper yamlMapper;
     private Workspace workspace;
 
+    public static class Options {
+        private int maxYamlCodepoints;
+
+        public Options() {
+            // Default to 20MB or more (limit is in code points)
+            this.maxYamlCodepoints = 20 * 1024 * 1024;
+        }
+
+        public int getMaxYamlCodepoints() {
+            return maxYamlCodepoints;
+        }
+
+        public void setMaxYamlCodepoints(int maxYamlCodepoints) {
+            this.maxYamlCodepoints = maxYamlCodepoints;
+        }
+    }
+
     public Parser(Workspace workspace) {
+        this(workspace, new Options());
+    }
+
+    public Parser(Workspace workspace, Options options) {
+
+        LoaderOptions loaderOptions = new LoaderOptions();
+        loaderOptions.setCodePointLimit(options.getMaxYamlCodepoints());
+
+        YAMLFactoryBuilder builder = YAMLFactory.builder();
+        builder.loaderOptions(loaderOptions);
+        YAMLFactory yamlFactory = builder.build();
+
         this.jsonMapper = new ObjectMapper();
-        this.yamlMapper = new ObjectMapper(new YAMLFactory());
+        this.yamlMapper = new ObjectMapper(yamlFactory);
         this.workspace = workspace;
     }
 
