@@ -225,11 +225,11 @@ public class BundlerTest {
             BundlingException, WorkspaceException {
         // make sure that components are mapped to
         // nodes under /definitions and /components
-        // even if the main files dont' have these nodes
+        // even if the main files don't have these nodes
         BundledJsonNode bundled20 = bundle("minimal", "swagger20.yaml");
-        assertNotNull(bundled20.at("/definitions/FooSchema/type"));
+        assertEquals("object", bundled20.at("/definitions/definitions.yaml-definitions-FooSchema/type").textValue());
 
         BundledJsonNode bundled30 = bundle("minimal", "openapi30.yaml");
-        assertNotNull(bundled30.at("/components/schemas/FooSchema/type"));
+        assertEquals("object", bundled30.at("/components/schemas/schemas.yaml-components-schemas-FooSchema/type").textValue());
     }
 }
