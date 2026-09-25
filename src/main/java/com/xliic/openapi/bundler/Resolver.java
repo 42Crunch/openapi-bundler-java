@@ -7,7 +7,7 @@ package com.xliic.openapi.bundler;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,10 +30,10 @@ public class Resolver {
     }
 
     public static void resolveReference(Parser parser, Reference reference) {
-        resolveReference(parser, reference, new ArrayList<URI>());
+        resolveReference(parser, reference, new HashSet<>());
     }
 
-    public static void resolveReference(Parser parser, Reference reference, ArrayList<URI> visited) {
+    public static void resolveReference(Parser parser, Reference reference, HashSet<URI> visited) {
 
         URI ref;
         try {
